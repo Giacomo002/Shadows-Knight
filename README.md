@@ -3,6 +3,6 @@
 Programmatori
 
 - Giacomo de Lillo
--
+- Francesco Trivellin
 -
 -
