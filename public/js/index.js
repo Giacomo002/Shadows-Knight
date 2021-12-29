@@ -1,5 +1,7 @@
 var config = {
-  type: Phaser.AUTO,
+    type: Phaser.AUTO,
+    width: window.innerWidth,
+    height: window.innerHeight,
   parent: "phaser-example",
   backgroundColor: "#0072bc",
   physics: {
@@ -30,7 +32,7 @@ function preload() {
 function create() {
   cursors = this.input.keyboard.createCursorKeys();
 
-  player = this.physics.add.sprite(400, 300, "knight");
+    player = this.physics.add.sprite(window.innerWidth / 2, window.innerHeight / 2, "knight");
 
   player.setCollideWorldBounds(true);
 
@@ -58,6 +60,11 @@ function create() {
     frameRate: 4,
     repeat: -1,
   });
+  this.anims.create({
+      key: "idle",
+      frames: [{ key: "knight", frame: 8 }],
+      frameRate: 4,
+  });
 }
 
 function update() {
@@ -66,16 +73,20 @@ function update() {
     //Movimenti giocatore
 
   if (cursors.left.isDown && cursors.up.isDown) {
-    player.setVelocityX(-300);
+      player.setVelocityX(-300);
+      player.setVelocityY(-300);
     player.anims.play("up", true);
   } else if (cursors.right.isDown && cursors.up.isDown) {
-    player.setVelocityX(300);
+      player.setVelocityX(300);
+      player.setVelocityY(-300);
     player.anims.play("up", true);
   } else if (cursors.left.isDown && cursors.down.isDown) {
-    player.setVelocityX(-300);
+      player.setVelocityX(-300);
+      player.setVelocityY(300);
     player.anims.play("down", true);
   } else if (cursors.right.isDown && cursors.down.isDown) {
-    player.setVelocityX(300);
+      player.setVelocityX(300);
+      player.setVelocityY(300);
     player.anims.play("down", true);
   } else if (cursors.left.isDown) {
     player.setVelocityX(-300);
@@ -83,13 +94,14 @@ function update() {
   } else if (cursors.right.isDown) {
     player.setVelocityX(300);
     player.anims.play("right", true);
-  }
-
-  if (cursors.up.isDown) {
+  }else if (cursors.up.isDown) {
     player.setVelocityY(-300);
     player.anims.play("up", true);
   } else if (cursors.down.isDown) {
     player.setVelocityY(300);
     player.anims.play("down", true);
+  } else {
+      player.setVelocityX(0);
+      player.anims.play("idle");
   }
 }
