@@ -4,10 +4,13 @@ var config = {
   height: window.innerHeight,
   backgroundColor: "#7AB8FF",
   physics: {
-    default: "arcade",
+    default: 'arcade',
     arcade: {
-      debug: false,
-    },
+      debug: true ,
+      gravity: {
+        y: 0
+      }
+    }
   },
   scene: {
     preload: preload,
@@ -28,32 +31,35 @@ var config = {
 
 var cursors;
 var player;
+var enemies;
 var velocityPlayer = 300;
 var raycaster;
 var ray;
 var graphics;
 var obstacles;
 var intersections;
-var toggleBtn;
 var dynamicMapping = true;
 
 var game = new Phaser.Game(config);
 
 function preload() {
+  this.load.image("ground", "assets/images/test/platform.png");
   this.load.spritesheet("knight", "assets/images/player/playerRun.png", {
     frameWidth: 96,
     frameHeight: 96,
   });
+  this.load.spritesheet(
+    "skeleton",
+    "assets/images/enemies/enemiesSkeletonRun.png",
+    {
+      frameWidth: 96,
+      frameHeight: 96,
+    }
+  );
 }
 
 function create() {
   cursors = this.input.keyboard.createCursorKeys();
-
-  player = this.physics.add.sprite(
-    window.innerWidth / 2,
-    window.innerHeight / 2,
-    "knight"
-  );
 
   //-----------------------------------------------------------------------------------------------------------------------
 
@@ -70,12 +76,20 @@ function create() {
     detectionRange: 200,
   });
 
-  //create obstacles
-  obstacles = this.physics.add.staticGroup();
-  createObstacles(this);
+  //  The platforms group contains the ground and the 2 ledges we can jump on
+  platforms = this.physics.add.staticGroup();
+
+  //  Here we create the ground.
+  //  Scale it to fit the width of the game (the original sprite is 400x32 in size)
+  platforms.create(400, 568, "ground").setScale(2).refreshBody();
+
+  //  Now let's create some ledges
+  platforms.create(600, 400, "ground");
+  platforms.create(50, 250, "ground");
+  platforms.create(750, 220, "ground");
 
   //map obstacles with dynamic updating
-  raycaster.mapGameObjects(obstacles.getChildren(), true);
+  raycaster.mapGameObjects(platforms.getChildren(), true);
 
   //cast ray in all directions
   intersections = ray.castCircle();
@@ -84,13 +98,24 @@ function create() {
     lineStyle: { width: 1, color: 0x00ff00 },
     fillStyle: { color: 0xffffff, alpha: 0.3 },
   });
-  draw();
+
+  player = this.physics.add.sprite(
+    window.innerWidth / 2,
+    window.innerHeight / 2,
+    "knight"
+  );
+
+  enemies = this.physics.add.sprite(300, 400, "skeleton");
 
   ray.setOrigin(player.x, player.y);
-
+  draw();
   //-----------------------------------------------------------------------------------------------------------------------
 
   player.setCollideWorldBounds(true);
+  enemies.setCollideWorldBounds(true);
+
+  // player.body.setSize(40, 80);
+  // player.body.setOffset(12, 5);
 
   this.anims.create({
     key: "left",
@@ -122,7 +147,11 @@ function create() {
     frameRate: 4,
   });
 
-  this.physics.add.collider(player, obstacles);
+  this.physics.add.collider(player, platforms);
+  this.physics.add.collider(enemies, platforms);
+  this.physics.add.collider(player, enemies);
+
+
 }
 
 function update() {
@@ -134,7 +163,9 @@ function update() {
 
   //------------------------------------------------------------------------------------
   //Movimenti giocatore
-  player.setVelocity(0);
+  player.body.setVelocity(0);
+  // enemies.setVelocityX(0);
+  
 
   if (cursors.left.isDown && cursors.up.isDown) {
     player.setVelocityX(-velocityPlayer);
@@ -168,42 +199,12 @@ function update() {
     player.setVelocityX(0);
     player.anims.play("idle");
   }
+
+  // enemyFollows();
 }
 
-//create obstacles
-function createObstacles(scene) {
-  //create rectangle obstacle
-  let obstacle = scene.add
-    .rectangle(100, 100, 75, 75)
-    .setStrokeStyle(1, 0xff0000);
-  obstacles.add(obstacle, true);
-
-  //create line obstacle
-  obstacle = scene.add
-    .line(400, 100, 0, 0, 200, 50)
-    .setStrokeStyle(1, 0xff0000);
-  obstacles.add(obstacle);
-
-  //create circle obstacle
-  obstacle = scene.add
-    .circle(650, 100, 50)
-    .setOrigin(1, 0.5)
-    .setStrokeStyle(1, 0xff0000);
-  obstacles.add(obstacle);
-
-  //create polygon obstacle
-  obstacle = scene.add
-    .polygon(650, 500, [0, 0, 50, 50, 100, 0, 100, 75, 50, 100, 0, 50])
-    .setStrokeStyle(1, 0xff0000);
-  obstacles.add(obstacle);
-
-  //create overlapping obstacles
-  for (let i = 0; i < 5; i++) {
-    obstacle = scene.add
-      .rectangle(350 + 30 * i, 550 - 30 * i, 50, 50)
-      .setStrokeStyle(1, 0xff0000);
-    obstacles.add(obstacle, true);
-  }
+function enemyFollows() {
+  console.log("ciao");
 }
 
 //draw rays intersections
@@ -217,8 +218,8 @@ function draw() {
   //draw detection ray
 
   //clear obstacles
-  for (let obstacle of obstacles.getChildren()) {
-    if (obstacle.isFilled) obstacle.setFillStyle();
+  for (let obstacle of platforms.getChildren()) {
+    if (obstacle.isFilled) platforms.setFillStyle();
   }
 
   for (let intersection of intersections) {
@@ -229,16 +230,16 @@ function draw() {
       y2: intersection.y,
     });
 
-    //fill hit object
-    if (intersection.object) {
-      intersection.object.setFillStyle(0xff00ff);
-    }
-    //Draw segment
-    if (intersection.segment) {
-      graphics.lineStyle(2, 0xffff00);
-      graphics.strokeLineShape(intersection.segment);
-      graphics.lineStyle(2, 0x00ff00);
-    }
+    // //fill hit object
+    // if (intersection.object) {
+    //   intersection.object.setFillStyle(0xff00ff);
+    // }
+    // //Draw segment
+    // if (intersection.segment) {
+    //   graphics.lineStyle(2, 0xffff00);
+    //   graphics.strokeLineShape(intersection.segment);
+    //   graphics.lineStyle(2, 0x00ff00);
+    // }
   }
   //draw detection range radius
   graphics.strokeCircleShape({
