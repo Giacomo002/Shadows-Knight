@@ -34,9 +34,11 @@ var platforms;
 var velocityPlayer = 300;
 var raycaster;
 var ray;
+var ray2;
 var graphics;
 var obstacles;
 var intersections;
+var intersections2;
 var rangeEnemies = 400;
 
 var game = new Phaser.Game(config);
@@ -59,8 +61,6 @@ function preload() {
   );
 }
 function create() {
-
-  
   //create raycaster
   raycaster = this.raycasterPlugin.createRaycaster();
   //create ray
@@ -71,6 +71,13 @@ function create() {
     },
     //set detection range
     detectionRange: rangeEnemies,
+  });
+
+  ray2 = raycaster.createRay({
+    origin: {
+      x: 400,
+      y: 300,
+    }
   });
 
   player = this.physics.add.sprite(window.innerWidth / 2, window.innerHeight / 2, "knight");
@@ -86,13 +93,19 @@ function create() {
   raycaster.mapGameObjects(obstacles.getChildren(), true);
   //cast ray in all directions
   intersections = ray.castCircle();
+  intersections2 = ray2.castCircle();
   //draw rays
   graphics = this.add.graphics({
     lineStyle: { width: 1, color: 0x00ff00 },
     fillStyle: { color: 0xffffff, alpha: 0.3 },
   });
 
+  platforms = this.physics.add.staticGroup();
 
+  platforms.add(this.physics.add.staticImage(300, 778, "ground").setScale(2).refreshBody());
+  platforms.add(this.physics.add.staticImage(600, 400, "ground"));
+  platforms.add(this.physics.add.staticImage(50, 250, "ground"));
+  platforms.add(this.physics.add.staticImage(750, 220, "ground"));
 
   player.setCollideWorldBounds(true);
   enemies.setCollideWorldBounds(true);
@@ -130,6 +143,7 @@ function create() {
   cursors = this.input.keyboard.createCursorKeys();
 
   ray.setOrigin(enemies.x, enemies.y);
+  ray2.setOrigin(enemies.x, enemies.y);
   draw();
 
   this.physics.add.collider(player, platforms);
@@ -139,8 +153,10 @@ function create() {
 function update() {
   
   ray.setOrigin(enemies.x, enemies.y);
+  ray2.setOrigin(enemies.x, enemies.y);
   //cast ray in all directions
   intersections = ray.castCircle();
+  intersections2 = ray2.castCircle();
   //redraw
   draw();
 
@@ -210,7 +226,33 @@ function draw() {
   for (let obstacle of obstacles.getChildren()) {
      player.tint = 0xffff00;
   }
+  for (let intersection2 of intersections2) {
+    //draw detection range radius
+    graphics.strokeCircleShape({
+      x: ray2.origin.x,
+      y: ray2.origin.y,
+      radius: ray.detectionRange,
+    });
+    graphics.strokeLineShape({
+      x1: ray2.origin.x,
+      y1: ray2.origin.y,
+      x2: intersection2.x,
+      y2: intersection2.y,
+    });
 
+    // //fill hit object
+    if (intersection2.object === player) {
+      player.tint = 0x00ff00;
+      // this.physics.moveTo(enemies, player.x, player.y, 100);
+      // console.log("ALERT");
+    }
+    // Draw segment
+    if (intersection2.segment) {
+      graphics.lineStyle(2, 0xffff00);
+      graphics.strokeLineShape(intersection2.segment);
+      graphics.lineStyle(2, 0x00ff00);
+    }
+  }
   for (let intersection of intersections) {
     //draw detection range radius
     graphics.strokeCircleShape({
@@ -238,5 +280,7 @@ function draw() {
       graphics.lineStyle(2, 0x00ff00);
     }
   }
+
+  
   
 }
