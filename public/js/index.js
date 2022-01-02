@@ -1,3 +1,4 @@
+import { Movement } from './PlayerJS.js';
 
 var config = {
   type: Phaser.AUTO,
@@ -40,6 +41,7 @@ var obstacles;
 var intersections;
 var intersections2;
 var rangeEnemies = 400;
+var rangeEnemies2 = 600;
 
 var game = new Phaser.Game(config);
 
@@ -77,7 +79,9 @@ function create() {
     origin: {
       x: 400,
       y: 300,
-    }
+    },
+    //set detection range
+    detectionRange: rangeEnemies2,
   });
 
   player = this.physics.add.sprite(window.innerWidth / 2, window.innerHeight / 2, "knight");
@@ -111,31 +115,31 @@ function create() {
   enemies.setCollideWorldBounds(true);
 
   this.anims.create({
-    key: "left",
+    key: "player-left",
     frames: this.anims.generateFrameNumbers("knight", { start: 0, end: 1 }),
     frameRate: 10,
     repeat: -1,
   });
   this.anims.create({
-    key: "right",
+    key: "player-right",
     frames: this.anims.generateFrameNumbers("knight", { start: 6, end: 7 }),
     frameRate: 4,
     repeat: -1,
   });
   this.anims.create({
-    key: "up",
+    key: "player-up",
     frames: this.anims.generateFrameNumbers("knight", { start: 4, end: 5 }),
     frameRate: 4,
     repeat: -1,
   });
   this.anims.create({
-    key: "down",
+    key: "player-down",
     frames: this.anims.generateFrameNumbers("knight", { start: 2, end: 3 }),
     frameRate: 4,
     repeat: -1,
   });
   this.anims.create({
-    key: "idle",
+    key: "player-idle",
     frames: [{ key: "knight", frame: 8 }],
     frameRate: 4,
   });
@@ -166,6 +170,7 @@ function update() {
   player.body.velocity.y = 0;
   enemies.body.velocity.x = 0;
   enemies.body.velocity.y = 0;
+
   for (let intersection of intersections) {
     if (intersection.object === player) {
       this.physics.moveToObject(enemies, player, 100);
@@ -173,37 +178,7 @@ function update() {
     }
   }
   
-  if (cursors.left.isDown && cursors.up.isDown) {
-    player.setVelocityX(-velocityPlayer);
-    player.setVelocityY(-velocityPlayer);
-    player.anims.play("up", true);
-  } else if (cursors.right.isDown && cursors.up.isDown) {
-    player.setVelocityX(velocityPlayer);
-    player.setVelocityY(-velocityPlayer);
-    player.anims.play("up", true);
-  } else if (cursors.left.isDown && cursors.down.isDown) {
-    player.setVelocityX(-velocityPlayer);
-    player.setVelocityY(velocityPlayer);
-    player.anims.play("left", true);
-  } else if (cursors.right.isDown && cursors.down.isDown) {
-    player.setVelocityX(velocityPlayer);
-    player.setVelocityY(velocityPlayer);
-    player.anims.play("right", true);
-  } else if (cursors.left.isDown) {
-    player.setVelocityX(-velocityPlayer);
-    player.anims.play("left", true);
-  } else if (cursors.right.isDown) {
-    player.setVelocityX(velocityPlayer);
-    player.anims.play("right", true);
-  } else if (cursors.up.isDown) {
-    player.setVelocityY(-velocityPlayer);
-    player.anims.play("up", true);
-  } else if (cursors.down.isDown) {
-    player.setVelocityY(velocityPlayer);
-    player.anims.play("down", true);
-  } else {
-    player.anims.play("idle");
-  }
+  Movement(cursors,player,velocityPlayer,this);
 
   this.physics.collide(player, platforms);
   this.physics.collide(enemies, platforms);
@@ -231,7 +206,7 @@ function draw() {
     graphics.strokeCircleShape({
       x: ray2.origin.x,
       y: ray2.origin.y,
-      radius: ray.detectionRange,
+      radius: ray2.detectionRange,
     });
     graphics.strokeLineShape({
       x1: ray2.origin.x,
@@ -253,6 +228,7 @@ function draw() {
       graphics.lineStyle(2, 0x00ff00);
     }
   }
+
   for (let intersection of intersections) {
     //draw detection range radius
     graphics.strokeCircleShape({
@@ -281,6 +257,4 @@ function draw() {
     }
   }
 
-  
-  
 }
