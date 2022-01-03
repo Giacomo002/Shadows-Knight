@@ -2,8 +2,9 @@ import { Movement } from './PlayerJS.js';
 
 var config = {
   type: Phaser.AUTO,
-  width: window.innerWidth,
-  height: window.innerHeight,
+  width: 800,
+  height: 800,
+  parent: "game-container",
   backgroundColor: "#7AB8FF",
   physics: {
     default: "arcade",
@@ -32,7 +33,8 @@ var cursors;
 var player;
 var enemies;
 var platforms;
-var velocityPlayer = 300;
+var velocityPlayer = 175;
+var velocityEnemy = 100;
 var raycaster;
 var ray;
 var ray2;
@@ -40,8 +42,9 @@ var graphics;
 var obstacles;
 var intersections;
 var intersections2;
-var rangeEnemies = 400;
-var rangeEnemies2 = 600;
+var rangeEnemies = 160;
+var rangeEnemies2 = 300;
+
 
 var game = new Phaser.Game(config);
 
@@ -64,7 +67,7 @@ function preload() {
   );
 }
 function create() {
-
+  
   const map = this.make.tilemap({ key: "map" });
   // Parameters are the name you gave the tileset in Tiled and then the key of the tileset image in
   // Phaser's cache (i.e. the name you used in preload)
@@ -73,7 +76,8 @@ function create() {
   const belowLayer = map.createLayer("ground", tileset, 0, 0);
   const topLayer = map.createLayer("wall", tileset, 0, 0);
 
-  topLayer.enableBody = true;
+  
+ 
 
   belowLayer.setCollisionByProperty({ collides: true });
   //create raycaster
@@ -99,15 +103,23 @@ function create() {
 
   const playerSpawnPoint = map.findObject("Objects", obj => obj.name === "Player Spawn");
   const enemySpawnPoint = map.findObject("Objects", obj => obj.name === "Enemy Spawn");
+
   player = this.physics.add.sprite(playerSpawnPoint.x, playerSpawnPoint.y, "knight");
   enemies = this.physics.add.sprite(enemySpawnPoint.x, enemySpawnPoint.y, "skeleton");
+
+  player.setSize(40, 80);
+  enemies.setSize(40, 80);
 
   obstacles = this.add.group();
   obstacles.add(player);
   obstacles.add(topLayer);
-  console.log(obstacles);
-  //map obstacles with dynamic updating
+
+  raycaster.mapGameObjects(topLayer, false, {
+    collisionTiles: [5, 6, 8, 12, 13] //array of tile types which collide with rays
+  });
+
   raycaster.mapGameObjects(obstacles.getChildren(), true);
+
   //cast ray in all directions
   intersections = ray.castCircle();
   intersections2 = ray2.castCircle();
@@ -117,10 +129,8 @@ function create() {
     fillStyle: { color: 0xffffff, alpha: 0.3 },
   });
 
-  
-
-  player.setCollideWorldBounds(true);
-  enemies.setCollideWorldBounds(true);
+  // player.setCollideWorldBounds(true);
+  // enemies.setCollideWorldBounds(true);
 
   this.anims.create({
     key: "player-left",
@@ -153,11 +163,14 @@ function create() {
   });
 
   cursors = this.input.keyboard.createCursorKeys();
+  
+  this.cameras.main.startFollow(player);
 
   ray.setOrigin(enemies.x, enemies.y);
   ray2.setOrigin(enemies.x, enemies.y);
   draw();
 
+  
   
 
   this.physics.add.collider(player, belowLayer);
@@ -165,7 +178,7 @@ function create() {
 }
 
 function update() {
-  
+
   ray.setOrigin(enemies.x, enemies.y);
   ray2.setOrigin(enemies.x, enemies.y);
   //cast ray in all directions
@@ -176,41 +189,41 @@ function update() {
 
   //------------------------------------------------------------------------------------
   //Movimenti giocatore
-  player.body.velocity.x = 0;
-  player.body.velocity.y = 0;
-  enemies.body.velocity.x = 0;
-  enemies.body.velocity.y = 0;
+  player.body.setVelocity(0);
+  enemies.body.setVelocity(0);
 
   for (let intersection of intersections) {
     if (intersection.object === player) {
       this.physics.moveToObject(enemies, player, 100);
-      // console.log("ALERT");
+      console.log("ALERT 1 :" + intersection.object);
     }
   }
-  
-  Movement(cursors,player,velocityPlayer,this);
+
+  Movement(cursors, player, velocityPlayer, this);
+
+  player.body.velocity.normalize().scale(velocityPlayer);
+  enemies.body.velocity.normalize().scale(velocityEnemy);
 
   this.physics.collide(player, platforms);
   this.physics.collide(enemies, platforms);
   this.physics.collide(player, enemies);
 }
 
-
-
 //draw rays intersections
 function draw() {
   graphics.clear();
 
   //OMBRE
-  graphics.fillStyle(0xffffff, 0.3);
-  graphics.fillPoints(intersections);
+  // graphics.fillStyle(0xffffff, 0.3);
+  // graphics.fillPoints(intersections);
 
   //draw detection ray
 
   //clear obstacles
   for (let obstacle of obstacles.getChildren()) {
-     player.tint = 0xffff00;
+    player.tint = 0xffff00;
   }
+
   for (let intersection2 of intersections2) {
     //draw detection range radius
     graphics.strokeCircleShape({
@@ -229,7 +242,7 @@ function draw() {
     if (intersection2.object === player) {
       player.tint = 0x00ff00;
       // this.physics.moveTo(enemies, player.x, player.y, 100);
-      // console.log("ALERT");
+      console.log("ALERT 2");
     }
     // Draw segment
     if (intersection2.segment) {
@@ -257,7 +270,7 @@ function draw() {
     if (intersection.object === player) {
       player.tint = 0xff00ff;
       // this.physics.moveTo(enemies, player.x, player.y, 100);
-      // console.log("ALERT");
+      console.log("ALERT 1");
     }
     // Draw segment
     if (intersection.segment) {
