@@ -46,7 +46,8 @@ var rangeEnemies2 = 600;
 var game = new Phaser.Game(config);
 
 function preload() {
-  this.load.image("ground", "assets/images/test/platform.png");
+  this.load.image("tiles", "assets/images/test/testMap.png");
+  this.load.tilemapTiledJSON("map", "assets/images/test/testMap3.json");
 
   this.load.spritesheet("knight", "assets/images/player/playerRun.png", {
     frameWidth: 96,
@@ -63,6 +64,18 @@ function preload() {
   );
 }
 function create() {
+
+  const map = this.make.tilemap({ key: "map" });
+  // Parameters are the name you gave the tileset in Tiled and then the key of the tileset image in
+  // Phaser's cache (i.e. the name you used in preload)
+  const tileset = map.addTilesetImage("TestMap", "tiles");
+
+  const belowLayer = map.createLayer("ground", tileset, 0, 0);
+  const topLayer = map.createLayer("wall", tileset, 0, 0);
+
+  topLayer.enableBody = true;
+
+  belowLayer.setCollisionByProperty({ collides: true });
   //create raycaster
   raycaster = this.raycasterPlugin.createRaycaster();
   //create ray
@@ -84,15 +97,15 @@ function create() {
     detectionRange: rangeEnemies2,
   });
 
-  player = this.physics.add.sprite(window.innerWidth / 2, window.innerHeight / 2, "knight");
-  enemies = this.physics.add.sprite(300, 400, "skeleton");
+  const playerSpawnPoint = map.findObject("Objects", obj => obj.name === "Player Spawn");
+  const enemySpawnPoint = map.findObject("Objects", obj => obj.name === "Enemy Spawn");
+  player = this.physics.add.sprite(playerSpawnPoint.x, playerSpawnPoint.y, "knight");
+  enemies = this.physics.add.sprite(enemySpawnPoint.x, enemySpawnPoint.y, "skeleton");
 
   obstacles = this.add.group();
-  obstacles.add(this.physics.add.staticImage(300, 778, "ground").setScale(2).refreshBody());
-  obstacles.add(this.physics.add.staticImage(600, 400, "ground"));
-  obstacles.add(this.physics.add.staticImage(50, 250, "ground"));
-  obstacles.add(this.physics.add.staticImage(750, 220, "ground"));
   obstacles.add(player);
+  obstacles.add(topLayer);
+  console.log(obstacles);
   //map obstacles with dynamic updating
   raycaster.mapGameObjects(obstacles.getChildren(), true);
   //cast ray in all directions
@@ -104,12 +117,7 @@ function create() {
     fillStyle: { color: 0xffffff, alpha: 0.3 },
   });
 
-  platforms = this.physics.add.staticGroup();
-
-  platforms.add(this.physics.add.staticImage(300, 778, "ground").setScale(2).refreshBody());
-  platforms.add(this.physics.add.staticImage(600, 400, "ground"));
-  platforms.add(this.physics.add.staticImage(50, 250, "ground"));
-  platforms.add(this.physics.add.staticImage(750, 220, "ground"));
+  
 
   player.setCollideWorldBounds(true);
   enemies.setCollideWorldBounds(true);
@@ -150,8 +158,10 @@ function create() {
   ray2.setOrigin(enemies.x, enemies.y);
   draw();
 
-  this.physics.add.collider(player, platforms);
-  this.physics.add.collider(enemies, platforms);
+  
+
+  this.physics.add.collider(player, belowLayer);
+  this.physics.add.collider(enemies, belowLayer);
 }
 
 function update() {

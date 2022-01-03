@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.5" tiledversion="1.7.2" orientation="orthogonal" renderorder="right-down" width="10" height="10" tilewidth="96" tileheight="96" infinite="0" nextlayerid="9" nextobjectid="3">
+ <editorsettings>
+  <export target="../../../../public/assets/images/test/testMap3.json" format="json"/>
+ </editorsettings>
+ <tileset firstgid="1" name="TestMap" tilewidth="96" tileheight="96" tilecount="14" columns="7">
+  <image source="../../../../public/assets/images/test/testMap.png" width="672" height="192"/>
+  <tile id="0">
+   <properties>
+    <property name="collides" type="bool" value="false"/>
+   </properties>
+  </tile>
+  <tile id="1">
+   <properties>
+    <property name="collides" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="2">
+   <properties>
+    <property name="collides" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="3">
+   <properties>
+    <property name="collides" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="4">
+   <properties>
+    <property name="collides" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="5">
+   <properties>
+    <property name="collides" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="6">
+   <properties>
+    <property name="collides" type="bool" value="false"/>
+   </properties>
+  </tile>
+  <tile id="7">
+   <properties>
+    <property name="collides" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="8">
+   <properties>
+    <property name="collides" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="9">
+   <properties>
+    <property name="collides" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="10">
+   <properties>
+    <property name="collides" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="11">
+   <properties>
+    <property name="collides" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="12">
+   <properties>
+    <property name="collides" type="bool" value="true"/>
+   </properties>
+  </tile>
+  <tile id="13">
+   <properties>
+    <property name="collides" type="bool" value="true"/>
+   </properties>
+  </tile>
+ </tileset>
+ <layer id="6" name="ground" width="10" height="10">
+  <data encoding="csv">
+2,2,2,2,2,2,2,2,2,2,
+2,1,1,1,1,1,1,1,1,2,
+2,1,1,1,1,1,1,1,1,2,
+2,2,1,2,1,1,2,1,2,2,
+2,1,1,2,1,1,2,1,1,2,
+2,1,1,1,1,1,1,1,1,2,
+2,1,2,2,2,2,2,2,1,2,
+2,1,7,7,7,7,7,7,1,2,
+2,1,1,1,1,1,1,1,1,2,
+2,2,2,2,2,2,2,2,2,2
+</data>
+ </layer>
+ <layer id="8" name="wall" width="10" height="10">
+  <data encoding="csv">
+1610612745,9,9,9,9,9,9,9,9,9,
+1610612745,0,0,0,0,0,0,0,0,2684354569,
+1610612745,0,0,0,0,0,0,0,0,2684354569,
+0,5,0,13,0,0,13,0,6,0,
+1610612745,0,0,12,0,0,12,0,0,8,
+1610612745,0,0,0,0,0,0,0,0,8,
+1610612745,0,6,5,6,5,6,5,0,8,
+1610612745,0,0,0,0,0,0,0,0,8,
+1610612745,0,0,0,0,0,0,0,0,8,
+3221225481,3221225481,3221225481,3221225481,3221225481,3221225481,3221225481,3221225481,3221225481,0
+</data>
+ </layer>
+ <objectgroup id="5" name="Objects">
+  <object id="1" name="Player Spawn" x="481.333" y="476">
+   <point/>
+  </object>
+  <object id="2" name="Enemy Spawn" x="190.667" y="184">
+   <point/>
+  </object>
+ </objectgroup>
+</map>
