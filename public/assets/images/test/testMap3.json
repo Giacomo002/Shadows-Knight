@@ -54,6 +54,18 @@
                  "width":0,
                  "x":190.666666666667,
                  "y":184
+                }, 
+                {
+                 "height":0,
+                 "id":3,
+                 "name":"Second Enemy",
+                 "point":true,
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":766.838479666445,
+                 "y":187.480572844281
                 }],
          "opacity":1,
          "type":"objectgroup",

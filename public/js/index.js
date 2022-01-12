@@ -1,4 +1,6 @@
-import { Movement } from './PlayerJS.js';
+import { Movement } from "./PlayerJS.js";
+import { drawDebugViewRayCasting } from "./functions.js";
+import { rayCasterEnemie } from "./rayCasterFunctions.js";
 
 var config = {
   type: Phaser.AUTO,
@@ -32,22 +34,18 @@ var config = {
 var cursors;
 var player;
 var enemies;
+var enemies2;
+var enemy1;
+var enemy2;
 var platforms;
 var velocityPlayer = 175;
 var velocityEnemy = 100;
-var raycaster;
-var ray;
-var ray2;
 var graphics;
 var obstacles;
-var intersections;
-var intersections2;
-var rangeEnemies = 160;
-var rangeEnemies2 = 300;
-
 
 var game = new Phaser.Game(config);
 
+//* PRELOAD FUNCTION SECTION --------------------------------------------------------
 function preload() {
   this.load.image("tiles", "assets/images/test/testMap.png");
   this.load.tilemapTiledJSON("map", "assets/images/test/testMap3.json");
@@ -66,71 +64,68 @@ function preload() {
     }
   );
 }
+
+//* CREATE FUNCTION SECTION --------------------------------------------------------
 function create() {
-  
   const map = this.make.tilemap({ key: "map" });
-  // Parameters are the name you gave the tileset in Tiled and then the key of the tileset image in
-  // Phaser's cache (i.e. the name you used in preload)
   const tileset = map.addTilesetImage("TestMap", "tiles");
 
   const belowLayer = map.createLayer("ground", tileset, 0, 0);
   const topLayer = map.createLayer("wall", tileset, 0, 0);
 
-  
- 
-
   belowLayer.setCollisionByProperty({ collides: true });
-  //create raycaster
-  raycaster = this.raycasterPlugin.createRaycaster();
-  //create ray
-  ray = raycaster.createRay({
-    origin: {
-      x: 400,
-      y: 300,
-    },
-    //set detection range
-    detectionRange: rangeEnemies,
-  });
 
-  ray2 = raycaster.createRay({
-    origin: {
-      x: 400,
-      y: 300,
-    },
-    //set detection range
-    detectionRange: rangeEnemies2,
-  });
+  const playerSpawnPoint = map.findObject(
+    "Objects",
+    (obj) => obj.name === "Player Spawn"
+  );
 
-  const playerSpawnPoint = map.findObject("Objects", obj => obj.name === "Player Spawn");
-  const enemySpawnPoint = map.findObject("Objects", obj => obj.name === "Enemy Spawn");
+  const enemySpawnPoint = map.findObject(
+    "Objects",
+    (obj) => obj.name === "Enemy Spawn"
+  );
 
-  player = this.physics.add.sprite(playerSpawnPoint.x, playerSpawnPoint.y, "knight");
-  enemies = this.physics.add.sprite(enemySpawnPoint.x, enemySpawnPoint.y, "skeleton");
+  const secondEnemy = map.findObject(
+    "Objects",
+    (obj) => obj.name === "Second Enemy"
+  );
+
+  player = this.physics.add.sprite(
+    playerSpawnPoint.x,
+    playerSpawnPoint.y,
+    "knight"
+  );
+  enemies = this.physics.add.sprite(
+    enemySpawnPoint.x,
+    enemySpawnPoint.y,
+    "skeleton"
+  );
+
+  enemies2 = this.physics.add.sprite(766, 186, "skeleton");
 
   player.setSize(40, 80);
   enemies.setSize(40, 80);
+  enemies2.setSize(40, 80);
 
   obstacles = this.add.group();
   obstacles.add(player);
   obstacles.add(topLayer);
 
-  raycaster.mapGameObjects(topLayer, false, {
-    collisionTiles: [5, 6, 8, 12, 13] //array of tile types which collide with rays
-  });
+  //create raycaster
 
-  raycaster.mapGameObjects(obstacles.getChildren(), true);
+  //create ray
 
+  enemy1 = new rayCasterEnemie(this, enemies, 160, 300, topLayer, obstacles);
+  enemy2 = new rayCasterEnemie(this, enemies2, 160, 300, topLayer, obstacles);
+
+  enemy1.initializeRays();
+  enemy2.initializeRays();
   //cast ray in all directions
-  intersections = ray.castCircle();
-  intersections2 = ray2.castCircle();
   //draw rays
   graphics = this.add.graphics({
     lineStyle: { width: 1, color: 0x00ff00 },
     fillStyle: { color: 0xffffff, alpha: 0.3 },
   });
-
-  // player.setCollideWorldBounds(true);
-  // enemies.setCollideWorldBounds(true);
 
   this.anims.create({
     key: "player-left",
@@ -163,39 +158,36 @@ function create() {
   });
 
   cursors = this.input.keyboard.createCursorKeys();
-  
+
   this.cameras.main.startFollow(player);
 
-  ray.setOrigin(enemies.x, enemies.y);
-  ray2.setOrigin(enemies.x, enemies.y);
-  draw();
-
-  
-  
 
   this.physics.add.collider(player, belowLayer);
   this.physics.add.collider(enemies, belowLayer);
+  this.physics.add.collider(enemies2, belowLayer);
 }
 
+//* UPDATE FUNCTION SECTION --------------------------------------------------------
 function update() {
-
-  ray.setOrigin(enemies.x, enemies.y);
-  ray2.setOrigin(enemies.x, enemies.y);
-  //cast ray in all directions
-  intersections = ray.castCircle();
-  intersections2 = ray2.castCircle();
-  //redraw
-  draw();
-
+  enemy1.updateRays();
+  enemy2.updateRays();
+  
   //------------------------------------------------------------------------------------
   //Movimenti giocatore
   player.body.setVelocity(0);
   enemies.body.setVelocity(0);
+  enemies2.body.setVelocity(0);
 
-  for (let intersection of intersections) {
+  for (let intersection of enemy1.intersectionsShortRange) {
     if (intersection.object === player) {
       this.physics.moveToObject(enemies, player, 100);
       console.log("ALERT 1 :" + intersection.object);
+    }
+  }
+  for (let intersection of enemy2.intersectionsShortRange) {
+    if (intersection.object === player) {
+      this.physics.moveToObject(enemies2, player, 100);
+      console.log("ALERT 2:" + intersection.object);
     }
   }
 
@@ -203,81 +195,11 @@ function update() {
 
   player.body.velocity.normalize().scale(velocityPlayer);
   enemies.body.velocity.normalize().scale(velocityEnemy);
+  enemies2.body.velocity.normalize().scale(velocityEnemy);
 
   this.physics.collide(player, platforms);
   this.physics.collide(enemies, platforms);
+  this.physics.collide(enemies2, platforms);
   this.physics.collide(player, enemies);
-}
-
-//draw rays intersections
-function draw() {
-  graphics.clear();
-
-  //OMBRE
-  // graphics.fillStyle(0xffffff, 0.3);
-  // graphics.fillPoints(intersections);
-
-  //draw detection ray
-
-  //clear obstacles
-  for (let obstacle of obstacles.getChildren()) {
-    player.tint = 0xffff00;
-  }
-
-  for (let intersection2 of intersections2) {
-    //draw detection range radius
-    graphics.strokeCircleShape({
-      x: ray2.origin.x,
-      y: ray2.origin.y,
-      radius: ray2.detectionRange,
-    });
-    graphics.strokeLineShape({
-      x1: ray2.origin.x,
-      y1: ray2.origin.y,
-      x2: intersection2.x,
-      y2: intersection2.y,
-    });
-
-    // //fill hit object
-    if (intersection2.object === player) {
-      player.tint = 0x00ff00;
-      // this.physics.moveTo(enemies, player.x, player.y, 100);
-      console.log("ALERT 2");
-    }
-    // Draw segment
-    if (intersection2.segment) {
-      graphics.lineStyle(2, 0xffff00);
-      graphics.strokeLineShape(intersection2.segment);
-      graphics.lineStyle(2, 0x00ff00);
-    }
-  }
-
-  for (let intersection of intersections) {
-    //draw detection range radius
-    graphics.strokeCircleShape({
-      x: ray.origin.x,
-      y: ray.origin.y,
-      radius: ray.detectionRange,
-    });
-    graphics.strokeLineShape({
-      x1: ray.origin.x,
-      y1: ray.origin.y,
-      x2: intersection.x,
-      y2: intersection.y,
-    });
-
-    // //fill hit object
-    if (intersection.object === player) {
-      player.tint = 0xff00ff;
-      // this.physics.moveTo(enemies, player.x, player.y, 100);
-      console.log("ALERT 1");
-    }
-    // Draw segment
-    if (intersection.segment) {
-      graphics.lineStyle(2, 0xffff00);
-      graphics.strokeLineShape(intersection.segment);
-      graphics.lineStyle(2, 0x00ff00);
-    }
-  }
-
+  this.physics.collide(player, enemies2);
 }
