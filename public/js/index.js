@@ -31,19 +31,19 @@ var config = {
   },
 };
 
-var cursors;
-var player;
-var enemies;
-var enemies2;
-var enemy1;
-var enemy2;
-var platforms;
-var velocityPlayer = 175;
-var velocityEnemy = 100;
-var graphics;
-var obstacles;
+let cursors;
+let player;
+let enemies;
+let enemies2;
+let enemy1;
+let enemy2;
+let platforms;
+let velocityPlayer = 175;
+let velocityEnemy = 100;
+let graphics;
+let obstacles;
 
-var game = new Phaser.Game(config);
+let game = new Phaser.Game(config);
 
 //* PRELOAD FUNCTION SECTION --------------------------------------------------------
 function preload() {
@@ -122,6 +122,7 @@ function create() {
   enemy2.initializeRays();
   //cast ray in all directions
   //draw rays
+  
   graphics = this.add.graphics({
     lineStyle: { width: 1, color: 0x00ff00 },
     fillStyle: { color: 0xffffff, alpha: 0.3 },
