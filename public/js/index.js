@@ -47,17 +47,32 @@ let game = new Phaser.Game(config);
 
 //* PRELOAD FUNCTION SECTION --------------------------------------------------------
 function preload() {
-  this.load.image("tiles", "assets/images/test/testMap.png");
-  this.load.tilemapTiledJSON("map", "assets/images/test/testMap3.json");
+  this.load.image("tiles", "asset/mappe/mappa1TEST/fullTilemap.png");
+  this.load.tilemapTiledJSON(
+    "map",
+    "asset/mappe/mappa1TEST/mappaTestLevel1.json"
+  );
 
-  this.load.spritesheet("knight", "assets/images/player/playerRun.png", {
-    frameWidth: 96,
-    frameHeight: 96,
-  });
+  this.load.spritesheet(
+    "knight-r",
+    "asset/heroes/knight/knight_run_spritesheet.png",
+    {
+      frameWidth: 96,
+      frameHeight: 96,
+    }
+  );
+  this.load.spritesheet(
+    "knight-i",
+    "asset/heroes/knight/knight_idle_spritesheet.png",
+    {
+      frameWidth: 96,
+      frameHeight: 96,
+    }
+  );
 
   this.load.spritesheet(
     "skeleton",
-    "assets/images/enemies/enemiesSkeletonRun.png",
+    "assets3/images/enemies/enemiesSkeletonRun.png",
     {
       frameWidth: 96,
       frameHeight: 96,
@@ -68,117 +83,112 @@ function preload() {
 //* CREATE FUNCTION SECTION --------------------------------------------------------
 function create() {
   const map = this.make.tilemap({ key: "map" });
-  const tileset = map.addTilesetImage("TestMap", "tiles");
+  const tileset = map.addTilesetImage("dungeonTileset", "tiles");
 
-  const belowLayer = map.createLayer("ground", tileset, 0, 0);
-  const topLayer = map.createLayer("wall", tileset, 0, 0);
+  const esternoLayer = map.createLayer("esterno", tileset, 0, 0);
+  const groundLayer = map.createLayer("ground", tileset, 0, 0);
+  const muriLayer = map.createLayer("muri", tileset, 0, 0);
+  const bandiereLayer = map.createLayer("bandiere", tileset, 0, 0);
+  const oggettiLayer = map.createLayer("oggetti", tileset, 0, 0);
 
-  belowLayer.setCollisionByProperty({ collides: true });
+  const perimetroLayer = map.createLayer("perimetro", tileset, 0, 0);
+
+  perimetroLayer.setCollisionByProperty({ collides: true });
+  oggettiLayer.setCollisionByProperty({ collides: true });
 
   const playerSpawnPoint = map.findObject(
-    "Objects",
-    (obj) => obj.name === "Player Spawn"
+    "SpawnPoint",
+    (obj) => obj.name === "Spawn Giocatore"
   );
 
-  const enemySpawnPoint = map.findObject(
-    "Objects",
-    (obj) => obj.name === "Enemy Spawn"
+  const firstenemySpawn = map.findObject(
+    "SpawnPoint",
+    (obj) => obj.name === "Spawn Nemici 1"
   );
 
   const secondEnemy = map.findObject(
-    "Objects",
-    (obj) => obj.name === "Second Enemy"
+    "SpawnPoint",
+    (obj) => obj.name === "Spawn Nemici 2"
   );
 
   player = this.physics.add.sprite(
     playerSpawnPoint.x,
     playerSpawnPoint.y,
-    "knight"
+    "knight-i"
   );
   enemies = this.physics.add.sprite(
-    enemySpawnPoint.x,
-    enemySpawnPoint.y,
+    firstenemySpawn.x,
+    firstenemySpawn.y,
     "skeleton"
   );
 
   enemies2 = this.physics.add.sprite(766, 186, "skeleton");
 
-  player.setSize(40, 80);
+  // player.setSize(40, 80);
   enemies.setSize(40, 80);
   enemies2.setSize(40, 80);
 
   obstacles = this.add.group();
   obstacles.add(player);
-  obstacles.add(topLayer);
+  obstacles.add(perimetroLayer);
+  obstacles.add(muriLayer);
 
   //create raycaster
 
   //create ray
 
-  enemy1 = new rayCasterEnemie(this, enemies, 160, 300, topLayer, obstacles);
-  enemy2 = new rayCasterEnemie(this, enemies2, 160, 300, topLayer, obstacles);
+  enemy1 = new rayCasterEnemie(this, enemies, 160, 300, muriLayer, obstacles);
+  enemy2 = new rayCasterEnemie(this, enemies2, 160, 300, muriLayer, obstacles);
 
   enemy1.initializeRays();
   enemy2.initializeRays();
   //cast ray in all directions
   //draw rays
-  
+
   graphics = this.add.graphics({
     lineStyle: { width: 1, color: 0x00ff00 },
     fillStyle: { color: 0xffffff, alpha: 0.3 },
   });
 
   this.anims.create({
-    key: "player-left",
-    frames: this.anims.generateFrameNumbers("knight", { start: 0, end: 1 }),
-    frameRate: 10,
+    key: "knight-run",
+    frames: this.anims.generateFrameNumbers("knight-r", { start: 0, end: 5 }),
+    frameRate: 11,
     repeat: -1,
   });
   this.anims.create({
-    key: "player-right",
-    frames: this.anims.generateFrameNumbers("knight", { start: 6, end: 7 }),
-    frameRate: 4,
+    key: "knight-idle",
+    frames: this.anims.generateFrameNumbers("knight-i", { start: 0, end: 5, }),
+    frameRate: 11,
     repeat: -1,
   });
-  this.anims.create({
-    key: "player-up",
-    frames: this.anims.generateFrameNumbers("knight", { start: 4, end: 5 }),
-    frameRate: 4,
-    repeat: -1,
-  });
-  this.anims.create({
-    key: "player-down",
-    frames: this.anims.generateFrameNumbers("knight", { start: 2, end: 3 }),
-    frameRate: 4,
-    repeat: -1,
-  });
-  this.anims.create({
-    key: "player-idle",
-    frames: [{ key: "knight", frame: 8 }],
-    frameRate: 4,
-  });
+
+  player.body.setVelocity(0);
+  player.anims.play("knight-idle");
+  const struttureLayer = map.createLayer("strutture", tileset, 0, 0);
 
   cursors = this.input.keyboard.createCursorKeys();
 
   this.cameras.main.startFollow(player);
 
-
-  this.physics.add.collider(player, belowLayer);
-  this.physics.add.collider(enemies, belowLayer);
-  this.physics.add.collider(enemies2, belowLayer);
+  this.physics.add.collider(player, perimetroLayer);
+  this.physics.add.collider(enemies, perimetroLayer);
+  this.physics.add.collider(enemies2, perimetroLayer);
 }
 
 //* UPDATE FUNCTION SECTION --------------------------------------------------------
 function update() {
   enemy1.updateRays();
   enemy2.updateRays();
-  
+
   //------------------------------------------------------------------------------------
   //Movimenti giocatore
   player.body.setVelocity(0);
   enemies.body.setVelocity(0);
   enemies2.body.setVelocity(0);
 
+  Movement(cursors, player, velocityPlayer, this);
+  
   for (let intersection of enemy1.intersectionsShortRange) {
     if (intersection.object === player) {
       this.physics.moveToObject(enemies, player, 100);
@@ -192,7 +202,7 @@ function update() {
     }
   }
 
-  Movement(cursors, player, velocityPlayer, this);
+  
 
   player.body.velocity.normalize().scale(velocityPlayer);
   enemies.body.velocity.normalize().scale(velocityEnemy);

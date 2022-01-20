@@ -8,7 +8,6 @@ function drawDebugViewRayCasting(
     intersections
 ) {
     
-
     //OMBRE
     // graphics.fillStyle(0xffffff, 0.3);
     // graphics.fillPoints(intersections);
