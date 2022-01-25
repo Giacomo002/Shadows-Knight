@@ -38,10 +38,13 @@ let enemies2;
 let enemy1;
 let enemy2;
 let platforms;
-let velocityPlayer = 175;
+let velocityPlayer = 200;
 let velocityEnemy = 100;
 let graphics;
 let obstacles;
+let ground;
+let trappoleTerreno;
+
 
 let game = new Phaser.Game(config);
 
@@ -56,6 +59,7 @@ this.load.scenePlugin(
   this.load.image("tiles", "asset/tiles/fullTilemap.png");
   this.load.image("tilesSecond", "asset/tiles/fullSpritesheet.png");
   this.load.image("tiles-background", "asset/tiles/background2.png");
+   this.load.image("tiles-background1", "asset/tiles/background.png");
   this.load.tilemapTiledJSON("map", "asset/mappe/mappaGioco.json");
   this.load.spritesheet(
     "knight-r",
@@ -86,28 +90,25 @@ this.load.scenePlugin(
 
 //* CREATE FUNCTION SECTION --------------------------------------------------------
 function create() {
-  
   const map = this.make.tilemap({ key: "map" });
+
   const tileset1 = map.addTilesetImage("fullTilemap", "tiles");
   const tileset2 = map.addTilesetImage("fullSpritesheet", "tilesSecond");
   const tileset3 = map.addTilesetImage("background2", "tiles-background");
+  const tileset4 = map.addTilesetImage("background", "tiles-background1");
 
   const background = map.createLayer("background", tileset3);
-  const ground = map.createLayer("ground", tileset1);
+  ground = map.createLayer("ground", [tileset1, tileset4,]);
   const stairs = map.createLayer("stairs", tileset1);
   const walls = map.createLayer("walls", tileset1);
-  const trappoleTerreno = map.createDynamicLayer("trappoleTerreno", tileset2);
+  trappoleTerreno = map.createDynamicLayer("trappoleTerreno", tileset2);
   const porteChiuse = map.createLayer("porteChiuse", tileset2, 0, 0);
 
-  const decorazioniTerreno = map.createLayer(
-    "decorazioniTerreno",
-    tileset1
-  );
-  const decorazioniMuro = map.createDynamicLayer(
-    "decorazioniMuro",
-    [tileset1, tileset2]
-  );
-  
+  const decorazioniTerreno = map.createLayer("decorazioniTerreno", tileset1);
+  const decorazioniMuro = map.createDynamicLayer("decorazioniMuro", [
+    tileset1,
+    tileset2,
+  ]);
 
   background.setCollisionByProperty({ collides: true });
   porteChiuse.setCollisionByProperty({ collides: true });
@@ -145,6 +146,9 @@ function create() {
   // // player.setSize(40, 80);
   // enemies.setSize(40, 80);
   // enemies2.setSize(40, 80);
+  player.setSize(40, 65);
+  player.setOffset(35, 25);
+
 
   // obstacles = this.add.group();
   // obstacles.add(player);
@@ -196,6 +200,7 @@ function create() {
 
   this.physics.add.collider(player, background);
   this.physics.add.collider(player, decorazioniTerreno);
+  this.physics.add.overlap(player, ground);
   // this.physics.add.collider(enemies, perimetroLayer);
   // this.physics.add.collider(enemies2, perimetroLayer);
 }
@@ -204,9 +209,10 @@ function create() {
 function update() {
   // enemy1.updateRays();
   // enemy2.updateRays();
-
+var tile = trappoleTerreno.getTileAtWorldXY(player.x, player.y);
   //------------------------------------------------------------------------------------
   //Movimenti giocatore
+  player.tint = 0xffff00;
   player.body.setVelocity(0);
   // enemies.body.setVelocity(0);
   // enemies2.body.setVelocity(0);
@@ -227,6 +233,19 @@ function update() {
   // }
 
   player.body.velocity.normalize().scale(velocityPlayer);
+  if (tile != null) {
+    console.log(tile.index);
+    if (
+      tile.index == 125 ||
+      tile.index == 126 ||
+      tile.index == 127 ||
+      tile.index == 128
+    ) {
+      player.tint = 0xff00ff;
+      console.log("MORTO");
+    }
+  }
+  
   // enemies.body.velocity.normalize().scale(velocityEnemy);
   // enemies2.body.velocity.normalize().scale(velocityEnemy);
 
