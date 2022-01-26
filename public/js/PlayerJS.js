@@ -1,87 +1,127 @@
-function Movement(cursors, player, velocityPlayer, game) {
-  if (cursors.left.isDown && cursors.up.isDown) {
-    player.setVelocityX(-velocityPlayer);
-      player.setVelocityY(-velocityPlayer);
-      
-    if (player.body.velocity.x < 0) {
-      player.scaleX = -1;
+function playerObj(map, cursors, game) {
+  this.game = game;
+  this.cursors = cursors;
+  this.map = map;
+
+  this.player;
+
+  this.playerSpawnPoint;
+  this.velocityPlayer = 200;
+
+  this.playerInitialize = () => {
+    this.playerSpawnPoint = this.map.findObject(
+      "SpawnGiocatore",
+      (obj) => obj.name === "Spawn Giocatore"
+    );
+
+    this.player = this.game.physics.add.sprite(
+      this.playerSpawnPoint.x,
+      this.playerSpawnPoint.y,
+      "knight-i"
+    );
+
+    this.player.setSize(40, 65);
+    this.player.setOffset(35, 25);
+
+    this.game.anims.create({
+      key: "knight-run",
+      frames: this.game.anims.generateFrameNumbers("knight-r", {
+        start: 0,
+        end: 5,
+      }),
+      frameRate: 11,
+      repeat: -1,
+    });
+    
+    this.game.anims.create({
+      key: "knight-idle",
+      frames: this.game.anims.generateFrameNumbers("knight-i", {
+        start: 0,
+        end: 5,
+      }),
+      frameRate: 11,
+      repeat: -1,
+    });
+
+    this.player.body.setVelocity(0);
+    this.player.anims.play("knight-idle");
+  };
+
+  this.changeDirection = () => {
+    if (this.player.body.velocity.x < 0) {
+      this.player.scaleX = -1;
     } else {
-      player.scaleX = 1;
+      this.player.scaleX = 1;
     }
-      player.body.setOffset(70, 25);
-      
-    player.anims.play("knight-run", true);
-  } else if (cursors.right.isDown && cursors.up.isDown) {
-    player.setVelocityX(velocityPlayer);
-    player.setVelocityY(-velocityPlayer);
-    if (player.body.velocity.x < 0) {
-      player.scaleX = -1;
+  };
+
+  this.movement = () => {
+    if (this.cursors.left.isDown && this.cursors.up.isDown) {
+      this.player.setVelocityX(-this.velocityPlayer);
+      this.player.setVelocityY(-this.velocityPlayer);
+
+      this.changeDirection();
+
+      this.player.body.setOffset(70, 25);
+
+      this.player.anims.play("knight-run", true);
+    } else if (this.cursors.right.isDown && this.cursors.up.isDown) {
+      this.player.setVelocityX(this.velocityPlayer);
+      this.player.setVelocityY(-this.velocityPlayer);
+
+      this.changeDirection();
+
+      this.player.setOffset(35, 25);
+      this.player.anims.play("knight-run", true);
+    } else if (this.cursors.left.isDown && this.cursors.down.isDown) {
+      this.player.setVelocityX(-this.velocityPlayer);
+      this.player.setVelocityY(this.velocityPlayer);
+
+      this.changeDirection();
+
+      this.player.body.setOffset(70, 25);
+      this.player.anims.play("knight-run", true);
+    } else if (this.cursors.right.isDown && this.cursors.down.isDown) {
+      this.player.setVelocityX(this.velocityPlayer);
+      this.player.setVelocityY(this.velocityPlayer);
+
+      this.changeDirection();
+
+      this.player.setOffset(35, 25);
+      this.player.anims.play("knight-run", true);
+    } else if (this.cursors.left.isDown) {
+      this.player.setVelocityX(-this.velocityPlayer);
+
+      this.changeDirection();
+
+      this.player.setOffset(70, 25);
+      this.player.anims.play("knight-run", true);
+    } else if (this.cursors.right.isDown) {
+      this.player.setVelocityX(this.velocityPlayer);
+
+      this.changeDirection();
+
+      this.player.setOffset(35, 25);
+      this.player.anims.play("knight-run", true);
+    } else if (this.cursors.up.isDown) {
+      this.player.setVelocityY(-this.velocityPlayer);
+
+      this.changeDirection();
+
+      this.player.setOffset(35, 25);
+      this.player.anims.play("knight-run", true);
+    } else if (this.cursors.down.isDown) {
+      this.player.setVelocityY(this.velocityPlayer);
+
+      this.changeDirection();
+
+      this.player.setOffset(35, 25);
+      this.player.anims.play("knight-run", true);
     } else {
-      player.scaleX = 1;
+      this.player.body.setVelocity(0);
+      this.player.anims.play("knight-idle", true);
     }
-    player.setOffset(35, 25);
-    player.anims.play("knight-run", true);
-  } else if (cursors.left.isDown && cursors.down.isDown) {
-    player.setVelocityX(-velocityPlayer);
-    player.setVelocityY(velocityPlayer);
-    if (player.body.velocity.x < 0) {
-      player.scaleX = -1;
-    } else {
-      player.scaleX = 1;
-    }
-    player.body.setOffset(70, 25);
-    player.anims.play("knight-run", true);
-  } else if (cursors.right.isDown && cursors.down.isDown) {
-    player.setVelocityX(velocityPlayer);
-    player.setVelocityY(velocityPlayer);
-    if (player.body.velocity.x < 0) {
-      player.scaleX = -1;
-    } else {
-      player.scaleX = 1;
-    }
-    player.setOffset(35, 25);
-    player.anims.play("knight-run", true);
-  } else if (cursors.left.isDown) {
-    player.setVelocityX(-velocityPlayer);
-    if (player.body.velocity.x < 0) {
-      player.scaleX = -1;
-    } else {
-      player.scaleX = 1;
-    }
-    player.setOffset(70, 25);
-    player.anims.play("knight-run", true);
-  } else if (cursors.right.isDown) {
-    player.setVelocityX(velocityPlayer);
-    if (player.body.velocity.x < 0) {
-      player.scaleX = -1;
-    } else {
-      player.scaleX = 1;
-    }
-    player.setOffset(35, 25);
-    player.anims.play("knight-run", true);
-  } else if (cursors.up.isDown) {
-    player.setVelocityY(-velocityPlayer);
-    if (player.body.velocity.x < 0) {
-      player.scaleX = -1;
-    } else {
-      player.scaleX = 1;
-    }
-    player.setOffset(35, 25);
-    player.anims.play("knight-run", true);
-  } else if (cursors.down.isDown) {
-    player.setVelocityY(velocityPlayer);
-    if (player.body.velocity.x < 0) {
-      player.scaleX = -1;
-    } else {
-      player.scaleX = 1;
-    }
-    player.setOffset(35, 25);
-    player.anims.play("knight-run", true);
-  } else {
-    player.body.setVelocity(0);
-    // player.body.setOffset(0, 0);
-    player.anims.play("knight-idle", true);
-  }
+  };
 }
 
-export { Movement };
+export { playerObj };
