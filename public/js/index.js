@@ -144,6 +144,9 @@ function create() {
 
   player1.playerInitialize();
 
+
+
+  
   console.log(map.objects);
 
   arrayGoblins = map.objects[3].objects;
