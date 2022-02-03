@@ -15,9 +15,9 @@ function drawDebugViewRayCasting(
     //draw detection ray
 
     //clear obstacles
-    for (let obstacle of obstacles.getChildren()) {
+    
         player.tint = 0xffff00;
-    }
+    
 
     for (let intersection2 of intersections2) {
         //draw detection range radius

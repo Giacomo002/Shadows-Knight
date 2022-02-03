@@ -3,7 +3,7 @@ function rayCasterEnemie(
     guest,
     shortRange,
     longRange,
-    collisionMapLayer,
+    // collisionMapLayer,
     collisionObject,
 ) {
     this.guest = guest;
@@ -13,7 +13,7 @@ function rayCasterEnemie(
     this.longRange = longRange;
 
     this.raycaster = game.raycasterPlugin.createRaycaster();
-    this.collisionMapLayer = collisionMapLayer;
+    // this.collisionMapLayer = collisionMapLayer;
     this.collisionObject = collisionObject;
 
     this.rayShortRange;
@@ -24,9 +24,9 @@ function rayCasterEnemie(
 
     this.initializeRays = function () {
 
-        this.raycaster.mapGameObjects(this.collisionMapLayer, false, {
-          collisionTiles: [5, 6, 8, 12, 13], //array of tile types which collide with rays
-        });
+        // this.raycaster.mapGameObjects(this.collisionMapLayer, false, {
+        //   collisionTiles: [5, 6, 8, 12, 13], //array of tile types which collide with rays
+        // });
 
         this.raycaster.mapGameObjects(this.collisionObject.getChildren(), true);
 

@@ -1,11 +1,12 @@
 import { playerObj } from "./PlayerJS.js";
+import { goblinObj } from "./EnemyJS.js";
 import { drawDebugViewRayCasting } from "./functions.js";
 import { rayCasterEnemie } from "./rayCasterFunctions.js";
 
 var config = {
   type: Phaser.AUTO,
-  width: 800,
-  height: 800,
+  width: window.innerWidth,
+  height: window.innerHeight,
   parent: "game-container",
   backgroundColor: "#394355",
   physics: {
@@ -34,9 +35,11 @@ var config = {
 let cursors;
 let player1;
 
-let goblins;
+let goblinGroup = [];
 let slime;
 let flyEye;
+
+let tempGoblin;
 
 let arrayGoblins;
 let arraySlime;
@@ -48,7 +51,7 @@ let enemy2;
 let platforms;
 let velocityEnemy = 100;
 let graphics;
-let obstacles;
+let obstaclesEnemys;
 let trappoleTerreno;
 
 let game = new Phaser.Game(config);
@@ -117,7 +120,7 @@ function create() {
   const tileset3 = map.addTilesetImage("background2", "tiles-background");
   const tileset4 = map.addTilesetImage("background", "tiles-background1");
 
-  // const background = map.createLayer("background", tileset3);
+  const background = map.createLayer("background", tileset3);
   const ground = map.createLayer("ground", [tileset1, tileset4]);
   const stairs = map.createLayer("stairs", tileset1);
   const walls = map.createLayer("walls", tileset1);
@@ -129,6 +132,16 @@ function create() {
     tileset1,
     tileset2,
   ]);
+
+  const structures = map.createLayer("structures", tileset1);
+  const upperWalls = map.createLayer("upperWalls", tileset1);
+  const upperWalls2 = map.createLayer("upperWalls2", tileset1);
+
+  upperWalls.setDepth(1);
+  upperWalls.setDepth(1);
+  upperWalls2.setDepth(1);
+  background.setDepth(1);
+  structures.setDepth(1);
 
   // const firstenemySpawn = map.findObject(
   //   "SpawnPoint",
@@ -144,9 +157,6 @@ function create() {
 
   player1.playerInitialize();
 
-
-
-  
   console.log(map.objects);
 
   arrayGoblins = map.objects[3].objects;
@@ -154,7 +164,6 @@ function create() {
   arraySlime = map.objects[6].objects;
 
   arrayFlyEys = map.objects[4].objects;
-
 
   this.game.anims.create({
     key: "goblin-idle",
@@ -166,10 +175,18 @@ function create() {
     repeat: -1,
   });
 
-  let enemyGoblin = this.add.group();
+  obstaclesEnemys = this.add.group();
+
+  obstaclesEnemys.add(player1.player);
+  obstaclesEnemys.add(background);
+  obstaclesEnemys.add(walls);
+  obstaclesEnemys.add(upperWalls);
+  obstaclesEnemys.add(upperWalls2);
 
   for (let position of arrayGoblins) {
-    goblins = this.physics.add.sprite(position.x, position.y, "goblin-i");
+    tempGoblin = new goblinObj(position, obstaclesEnemys, this);
+    tempGoblin.goblinInitialize();
+    goblinGroup.push(tempGoblin);
   }
 
   for (let position of arraySlime) {
@@ -210,15 +227,14 @@ function create() {
   //cast ray in all directions
   //draw rays
 
-  // graphics = this.add.graphics({
-  //   lineStyle: { width: 1, color: 0x00ff00 },
-  //   fillStyle: { color: 0xffffff, alpha: 0.3 },
-  // });
 
-  const background = map.createLayer("background", tileset3);
-  const structures = map.createLayer("structures", tileset1);
-  const upperWalls = map.createLayer("upperWalls", tileset1);
-  const upperWalls2 = map.createLayer("upperWalls2", tileset1);
+  graphics = this.add.graphics({
+    lineStyle: { width: 1, color: 0x00ff00 },
+    fillStyle: { color: 0xffffff, alpha: 0.3 },
+  });
+
+  
+  // drawDebugViewRayCasting();
 
   background.setCollisionByProperty({ collides: true });
   porteChiuse.setCollisionByProperty({ collides: true });
@@ -239,7 +255,14 @@ function create() {
 function update() {
   // enemy1.updateRays();
   // enemy2.updateRays();
-  var tile = trappoleTerreno.getTileAtWorldXY(
+
+  // console.log(goblinGroup);
+
+  var tileTrappole = trappoleTerreno.getTileAtWorldXY(
+    player1.player.x,
+    player1.player.y
+  );
+  var tileAttackPlayer = trappoleTerreno.getTileAtWorldXY(
     player1.player.x,
     player1.player.y
   );
@@ -251,6 +274,11 @@ function update() {
   // enemies2.body.setVelocity(0);
 
   player1.movement();
+
+  // for (let goblinEnemy of goblinGroup) {
+  //   goblinEnemy.goblinRay.updateRays();
+  //   goblinEnemy.goblinChasePlayer(player1.player);
+  // }
 
   // for (let intersection of enemy1.intersectionsShortRange) {
   //   if (intersection.object === player) {
@@ -266,16 +294,29 @@ function update() {
   // }
 
   player1.player.body.velocity.normalize().scale(player1.velocityPlayer);
-  if (tile != null) {
-    console.log(tile.index);
+
+  if (tileTrappole != null) {
+    // console.log(tile.index);
     if (
-      tile.index == 125 ||
-      tile.index == 126 ||
-      tile.index == 127 ||
-      tile.index == 128
+      tileTrappole.index == 125 ||
+      tileTrappole.index == 126 ||
+      tileTrappole.index == 127 ||
+      tileTrappole.index == 128
     ) {
       player1.player.tint = 0xff00ff;
-      console.log("MORTO");
+      // console.log("MORTO");
+    }
+  }
+  if (tileAttackPlayer != null) {
+    console.log(tileTrappole);
+    if (
+      tileTrappole.index == 125 ||
+      tileTrappole.index == 126 ||
+      tileTrappole.index == 127 ||
+      tileTrappole.index == 128
+    ) {
+      player1.player.tint = 0xff00ff;
+      // console.log("MORTO");
     }
   }
 
