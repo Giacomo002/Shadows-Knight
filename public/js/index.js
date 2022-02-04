@@ -7,13 +7,16 @@ var config = {
   type: Phaser.AUTO,
   width: window.innerWidth,
   height: window.innerHeight,
-  parent: "game-container",
   backgroundColor: "#394355",
   physics: {
     default: "arcade",
     arcade: {
       debug: true,
     },
+  },
+  fps: {
+    target: 60,
+    forceSetTimeOut: false,
   },
   scene: {
     preload: preload,
@@ -53,6 +56,8 @@ let velocityEnemy = 100;
 let graphics;
 let obstaclesEnemys;
 let trappoleTerreno;
+let walls;
+let background;
 
 let game = new Phaser.Game(config);
 
@@ -71,7 +76,6 @@ function preload() {
   this.load.image("tiles-background", "asset/tiles/background2.png");
   this.load.image("tiles-background1", "asset/tiles/background.png");
 
-  
   this.load.spritesheet(
     "knight-r",
     "asset/heroes/knight/knight_run_spritesheet.png",
@@ -120,10 +124,11 @@ function create() {
   const tileset3 = map.addTilesetImage("background2", "tiles-background");
   const tileset4 = map.addTilesetImage("background", "tiles-background1");
 
-  const background = map.createLayer("background", tileset3);
+  background = map.createLayer("background", tileset3);
+  const checkForPlayer = map.createLayer("CheckForPlayer",);
   const ground = map.createLayer("ground", [tileset1, tileset4]);
   const stairs = map.createLayer("stairs", tileset1);
-  const walls = map.createLayer("walls", tileset1);
+  walls = map.createLayer("walls", tileset1);
   trappoleTerreno = map.createDynamicLayer("trappoleTerreno", tileset2);
   const porteChiuse = map.createLayer("porteChiuse", tileset2, 0, 0);
 
@@ -186,16 +191,16 @@ function create() {
   for (let position of arrayGoblins) {
     tempGoblin = new goblinObj(position, obstaclesEnemys, this);
     tempGoblin.goblinInitialize();
-    goblinGroup.push(tempGoblin);
+    // goblinGroup.push(tempGoblin);
   }
 
-  for (let position of arraySlime) {
-    slime = this.physics.add.sprite(position.x, position.y, "slime-i");
-  }
+  // for (let position of arraySlime) {
+  //   slime = this.physics.add.sprite(position.x, position.y, "slime-i");
+  // }
 
-  for (let position of arrayFlyEys) {
-    flyEye = this.physics.add.sprite(position.x, position.y, "flyEye-i");
-  }
+  // for (let position of arrayFlyEys) {
+  //   flyEye = this.physics.add.sprite(position.x, position.y, "flyEye-i");
+  // }
 
   // enemies = this.physics.add.sprite(
   //   firstenemySpawn.x,
@@ -227,13 +232,11 @@ function create() {
   //cast ray in all directions
   //draw rays
 
-
   graphics = this.add.graphics({
     lineStyle: { width: 1, color: 0x00ff00 },
     fillStyle: { color: 0xffffff, alpha: 0.3 },
   });
 
-  
   // drawDebugViewRayCasting();
 
   background.setCollisionByProperty({ collides: true });
@@ -262,6 +265,9 @@ function update() {
     player1.player.x,
     player1.player.y
   );
+
+  var tileMuro = walls.getTileAtWorldXY(player1.player.x, player1.player.y);
+
   var tileAttackPlayer = trappoleTerreno.getTileAtWorldXY(
     player1.player.x,
     player1.player.y
@@ -272,8 +278,6 @@ function update() {
   player1.player.body.setVelocity(0);
   // enemies.body.setVelocity(0);
   // enemies2.body.setVelocity(0);
-
-  player1.movement();
 
   // for (let goblinEnemy of goblinGroup) {
   //   goblinEnemy.goblinRay.updateRays();
@@ -293,8 +297,6 @@ function update() {
   //   }
   // }
 
-  player1.player.body.velocity.normalize().scale(player1.velocityPlayer);
-
   if (tileTrappole != null) {
     // console.log(tile.index);
     if (
@@ -307,6 +309,7 @@ function update() {
       // console.log("MORTO");
     }
   }
+
   if (tileAttackPlayer != null) {
     console.log(tileTrappole);
     if (
@@ -320,10 +323,41 @@ function update() {
     }
   }
 
+  if (tileMuro != null) {
+    console.log(tileMuro.index);
+    if (
+      tileMuro.index == 305 ||
+      tileMuro.index == 304 ||
+      tileMuro.index == 295 ||
+      tileMuro.index == 296 ||
+      tileMuro.index == 306 ||
+      tileMuro.index == 297
+    ) {
+      player1.player.setSize(40, 96);
+      player1.player.setOffset(35, 0);
+      player1.movement(0);
+      if (player1.player.scaleX == -1) {
+        player1.player.setOffset(70, 0);
+      } else {
+        player1.player.setOffset(35, 0);
+      } // console.log("MORTO");
+    }
+  } else {
+    player1.movement(25);
+    player1.player.setSize(40, 65);
+    if (player1.player.scaleX == -1) {
+      player1.player.setOffset(70, 25);
+    } else {
+      player1.player.setOffset(35, 25);
+    }
+    console.log();
+  }
+
+  player1.player.body.velocity.normalize().scale(player1.velocityPlayer);
   // enemies.body.velocity.normalize().scale(velocityEnemy);
   // enemies2.body.velocity.normalize().scale(velocityEnemy);
 
-  this.physics.collide(player1.player, platforms);
+  this.physics.collide(player1.player, background);
   // this.physics.collide(enemies, platforms);
   // this.physics.collide(enemies2, platforms);
   // this.physics.collide(player, enemies);

@@ -55,14 +55,14 @@ function playerObj(map, cursors, game) {
     }
   };
 
-  this.movement = () => {
+  this.movement = (offsetY) => {
     if (this.cursors.left.isDown && this.cursors.up.isDown) {
       this.player.setVelocityX(-this.velocityPlayer);
       this.player.setVelocityY(-this.velocityPlayer);
 
       this.changeDirection();
 
-      this.player.body.setOffset(70, 25);
+      this.player.body.setOffset(70, offsetY);
 
       this.player.anims.play("knight-run", true);
     } else if (this.cursors.right.isDown && this.cursors.up.isDown) {
@@ -71,7 +71,7 @@ function playerObj(map, cursors, game) {
 
       this.changeDirection();
 
-      this.player.setOffset(35, 25);
+      this.player.setOffset(35, offsetY);
       this.player.anims.play("knight-run", true);
     } else if (this.cursors.left.isDown && this.cursors.down.isDown) {
       this.player.setVelocityX(-this.velocityPlayer);
@@ -79,7 +79,7 @@ function playerObj(map, cursors, game) {
 
       this.changeDirection();
 
-      this.player.body.setOffset(70, 25);
+      this.player.body.setOffset(70, offsetY);
       this.player.anims.play("knight-run", true);
     } else if (this.cursors.right.isDown && this.cursors.down.isDown) {
       this.player.setVelocityX(this.velocityPlayer);
@@ -87,35 +87,35 @@ function playerObj(map, cursors, game) {
 
       this.changeDirection();
 
-      this.player.setOffset(35, 25);
+      this.player.setOffset(35, offsetY);
       this.player.anims.play("knight-run", true);
     } else if (this.cursors.left.isDown) {
       this.player.setVelocityX(-this.velocityPlayer);
 
       this.changeDirection();
 
-      this.player.setOffset(70, 25);
+      this.player.setOffset(70, offsetY);
       this.player.anims.play("knight-run", true);
     } else if (this.cursors.right.isDown) {
       this.player.setVelocityX(this.velocityPlayer);
 
       this.changeDirection();
 
-      this.player.setOffset(35, 25);
+      this.player.setOffset(35, offsetY);
       this.player.anims.play("knight-run", true);
     } else if (this.cursors.up.isDown) {
       this.player.setVelocityY(-this.velocityPlayer);
 
       this.changeDirection();
 
-      this.player.setOffset(35, 25);
+      this.player.setOffset(35, offsetY);
       this.player.anims.play("knight-run", true);
     } else if (this.cursors.down.isDown) {
       this.player.setVelocityY(this.velocityPlayer);
 
       this.changeDirection();
 
-      this.player.setOffset(35, 25);
+      this.player.setOffset(35, offsetY);
       this.player.anims.play("knight-run", true);
     } else {
       this.player.body.setVelocity(0);
