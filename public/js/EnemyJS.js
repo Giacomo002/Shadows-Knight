@@ -6,7 +6,6 @@ function goblinObj(position, obstaclesEnemys, game) {
   this.obstaclesEnemys = obstaclesEnemys;
 
   this.goblin;
-  this.goblinRay;
 
   this.goblinSpawnPoint;
   this.velocityGoblin = 200;
@@ -31,29 +30,44 @@ function goblinObj(position, obstaclesEnemys, game) {
       repeat: -1,
     });
 
-    this.goblinRay = new rayCasterEnemie(
-      this.game,
-      this.goblin,
-      160,
-      300,
-      //   muriLayer,
-      this.obstaclesEnemys
-    );
-
-    this.goblinRay.initializeRays();
-
     this.goblin.body.setVelocity(0);
     this.goblin.anims.play("goblin-idle");
   };
 
-    this.goblinChasePlayer = (player) => {
-        console.log("Verifica");
-    for (let intersection of this.goblinRay.intersectionsShortRange) {
-      if (intersection.object === player) {
-        //   this.physics.moveToObject(enemies, player, 100);
-        console.log("ALERT 1 :" + intersection.object);
+  this.goblinChasePlayer = (tileAttackPlayer, checkForPlayer, player) => {
+    var tileGoblin = checkForPlayer.getTileAtWorldXY(
+      this.goblin.x,
+      this.goblin.y
+    );
+    if (tileAttackPlayer) {
+      if (
+        tileAttackPlayer.properties.tileIDchecker ==
+        tileGoblin.properties.tileIDchecker
+      ) {
+        this.game.physics.moveToObject(this.goblin, player, 100);
+        console.log(
+          "Player: " +
+            tileAttackPlayer.properties.tileIDchecker +
+            " Enemy: " +
+            checkForPlayer.getTileAtWorldXY(this.goblin.x, this.goblin.y)
+              .properties.tileIDchecker
+        );
+      } else {
+          if (
+           Math.abs(this.goblin.body.velocity.x) > 1 &&
+           Math.abs(this.goblin.body.velocity.y) > 1
+         ) {
+           console.log("no");
+           this.goblin.body.setVelocity(0);
+         } 
       }
-    }
+    } else if (
+      Math.abs(this.goblin.body.velocity.x) > 1 &&
+      Math.abs(this.goblin.body.velocity.y) > 1
+    ) {
+      console.log("no_player fuori");
+      this.goblin.body.setVelocity(0);
+    } 
   };
 
   this.changeDirection = () => {

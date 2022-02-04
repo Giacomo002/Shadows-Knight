@@ -44,7 +44,7 @@ let flyEye;
 
 let tempGoblin;
 
-let arrayGoblins;
+let arrayGoblinslevel1;
 let arraySlime;
 let arrayFlyEys;
 
@@ -58,6 +58,8 @@ let obstaclesEnemys;
 let trappoleTerreno;
 let walls;
 let background;
+let checkForPlayer;
+let levelChecker;
 
 let game = new Phaser.Game(config);
 
@@ -75,6 +77,8 @@ function preload() {
   this.load.image("tilesSecond", "asset/tiles/fullSpritesheet.png");
   this.load.image("tiles-background", "asset/tiles/background2.png");
   this.load.image("tiles-background1", "asset/tiles/background.png");
+  this.load.image("attackPlayerTiles", "asset/tiles/attackPlayerTiles.png");
+  this.load.image("levelportal", "asset/tiles/levelportal.png");
 
   this.load.spritesheet(
     "knight-r",
@@ -123,9 +127,15 @@ function create() {
   const tileset2 = map.addTilesetImage("fullSpritesheet", "tilesSecond");
   const tileset3 = map.addTilesetImage("background2", "tiles-background");
   const tileset4 = map.addTilesetImage("background", "tiles-background1");
+  const tileset5 = map.addTilesetImage(
+    "attackPlayerTiles",
+    "attackPlayerTiles"
+  );
+  const tileset6 = map.addTilesetImage("levelportal", "levelportal");
 
   background = map.createLayer("background", tileset3);
-  const checkForPlayer = map.createLayer("CheckForPlayer",);
+  checkForPlayer = map.createLayer("CheckForPlayer", tileset5);
+  levelChecker = map.createLayer("levelChecker", tileset5);
   const ground = map.createLayer("ground", [tileset1, tileset4]);
   const stairs = map.createLayer("stairs", tileset1);
   walls = map.createLayer("walls", tileset1);
@@ -164,11 +174,11 @@ function create() {
 
   console.log(map.objects);
 
-  arrayGoblins = map.objects[3].objects;
+  arrayGoblinslevel1 = map.objects[3].objects;
 
-  arraySlime = map.objects[6].objects;
+  // arraySlime = map.objects[6].objects;
 
-  arrayFlyEys = map.objects[4].objects;
+  // arrayFlyEys = map.objects[4].objects;
 
   this.game.anims.create({
     key: "goblin-idle",
@@ -188,10 +198,10 @@ function create() {
   obstaclesEnemys.add(upperWalls);
   obstaclesEnemys.add(upperWalls2);
 
-  for (let position of arrayGoblins) {
+  for (let position of arrayGoblinslevel1) {
     tempGoblin = new goblinObj(position, obstaclesEnemys, this);
     tempGoblin.goblinInitialize();
-    // goblinGroup.push(tempGoblin);
+    goblinGroup.push(tempGoblin);
   }
 
   // for (let position of arraySlime) {
@@ -256,8 +266,6 @@ function create() {
 
 //* UPDATE FUNCTION SECTION --------------------------------------------------------
 function update() {
-  // enemy1.updateRays();
-  // enemy2.updateRays();
 
   // console.log(goblinGroup);
 
@@ -268,7 +276,12 @@ function update() {
 
   var tileMuro = walls.getTileAtWorldXY(player1.player.x, player1.player.y);
 
-  var tileAttackPlayer = trappoleTerreno.getTileAtWorldXY(
+  var tileAttackPlayer = checkForPlayer.getTileAtWorldXY(
+    player1.player.x,
+    player1.player.y
+  );
+
+  var tileLevel = levelChecker.getTileAtWorldXY(
     player1.player.x,
     player1.player.y
   );
@@ -276,29 +289,14 @@ function update() {
   //Movimenti giocatore
   player1.player.tint = 0xffff00;
   player1.player.body.setVelocity(0);
+  if (tileLevel) player1.changeLevel(tileLevel);
   // enemies.body.setVelocity(0);
   // enemies2.body.setVelocity(0);
+    for (let goblinEnemy of goblinGroup) {
+      goblinEnemy.goblinChasePlayer(tileAttackPlayer, checkForPlayer, player1.player);
+    }
 
-  // for (let goblinEnemy of goblinGroup) {
-  //   goblinEnemy.goblinRay.updateRays();
-  //   goblinEnemy.goblinChasePlayer(player1.player);
-  // }
-
-  // for (let intersection of enemy1.intersectionsShortRange) {
-  //   if (intersection.object === player) {
-  //     this.physics.moveToObject(enemies, player, 100);
-  //     console.log("ALERT 1 :" + intersection.object);
-  //   }
-  // }
-  // for (let intersection of enemy2.intersectionsShortRange) {
-  //   if (intersection.object === player) {
-  //     this.physics.moveToObject(enemies2, player, 100);
-  //     console.log("ALERT 2:" + intersection.object);
-  //   }
-  // }
-
-  if (tileTrappole != null) {
-    // console.log(tile.index);
+  if (tileTrappole) {
     if (
       tileTrappole.index == 125 ||
       tileTrappole.index == 126 ||
@@ -306,25 +304,10 @@ function update() {
       tileTrappole.index == 128
     ) {
       player1.player.tint = 0xff00ff;
-      // console.log("MORTO");
     }
   }
 
-  if (tileAttackPlayer != null) {
-    console.log(tileTrappole);
-    if (
-      tileTrappole.index == 125 ||
-      tileTrappole.index == 126 ||
-      tileTrappole.index == 127 ||
-      tileTrappole.index == 128
-    ) {
-      player1.player.tint = 0xff00ff;
-      // console.log("MORTO");
-    }
-  }
-
-  if (tileMuro != null) {
-    console.log(tileMuro.index);
+  if (tileMuro) {
     if (
       tileMuro.index == 305 ||
       tileMuro.index == 304 ||
@@ -350,7 +333,6 @@ function update() {
     } else {
       player1.player.setOffset(35, 25);
     }
-    console.log();
   }
 
   player1.player.body.velocity.normalize().scale(player1.velocityPlayer);

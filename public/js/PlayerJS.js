@@ -4,6 +4,7 @@ function playerObj(map, cursors, game) {
   this.map = map;
 
   this.player;
+  this.currentLevel = 0;
 
   this.playerSpawnPoint;
   this.velocityPlayer = 200;
@@ -122,6 +123,10 @@ function playerObj(map, cursors, game) {
       this.player.anims.play("knight-idle", true);
     }
   };
+
+  this.changeLevel = (tile) => {
+    this.currentLevel = tile.properties.level;
+  }
 }
 
 export { playerObj };
