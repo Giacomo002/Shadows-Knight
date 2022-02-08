@@ -47,6 +47,7 @@ let tempGoblin;
 let arrayGoblinslevel1;
 let arraySlime;
 let arrayFlyEys;
+let sword;
 
 let enemies2;
 let enemy1;
@@ -79,6 +80,19 @@ function preload() {
   this.load.image("tiles-background1", "asset/tiles/background.png");
   this.load.image("attackPlayerTiles", "asset/tiles/attackPlayerTiles.png");
   this.load.image("levelportal", "asset/tiles/levelportal.png");
+  this.load.image("sword-knight", "asset/heroes/knight/weapon_sword_11.png");
+  this.load.spritesheet(
+    "sword-slash",
+    "asset/effects/slash_effect_anim_spritesheet96x96.png",
+    {
+      frameWidth: 96,
+      frameHeight: 96,
+    }
+  );
+  this.load.image(
+    "sword-flip-knight",
+    "asset/heroes/knight/weapon_sword_11-flip.png"
+  );
 
   this.load.spritesheet(
     "knight-r",
@@ -120,6 +134,7 @@ function preload() {
 //* CREATE FUNCTION SECTION --------------------------------------------------------
 function create() {
   cursors = this.input.keyboard.createCursorKeys();
+  this.input.mouse.disableContextMenu();
 
   const map = this.make.tilemap({ key: "map" });
 
@@ -158,21 +173,13 @@ function create() {
   background.setDepth(1);
   structures.setDepth(1);
 
-  // const firstenemySpawn = map.findObject(
-  //   "SpawnPoint",
-  //   (obj) => obj.name === "Spawn Nemici 1"
-  // );
-
-  // const secondEnemy = map.findObject(
-  //   "SpawnPoint",
-  //   (obj) => obj.name === "Spawn Nemici 2"
-  // );
+  this.input.setDefaultCursor("url(asset/ui/crosshair_180x80.png), pointer");
 
   player1 = new playerObj(map, cursors, this);
 
   player1.playerInitialize();
 
-  console.log(map.objects);
+  // console.log(map.objects);
 
   arrayGoblinslevel1 = map.objects[3].objects;
 
@@ -202,52 +209,22 @@ function create() {
     tempGoblin = new goblinObj(position, obstaclesEnemys, this);
     tempGoblin.goblinInitialize();
     goblinGroup.push(tempGoblin);
+    
   }
 
-  // for (let position of arraySlime) {
-  //   slime = this.physics.add.sprite(position.x, position.y, "slime-i");
-  // }
+  this.input.on(
+    "pointerdown",
+    function (pointer) {
+      if (pointer.leftButtonDown()) {
+        if (pointer.getDuration() < 500) {
+          player1.swordAttackAnimation();
+        }
+      }
+    },
+    this
+  );
 
-  // for (let position of arrayFlyEys) {
-  //   flyEye = this.physics.add.sprite(position.x, position.y, "flyEye-i");
-  // }
 
-  // enemies = this.physics.add.sprite(
-  //   firstenemySpawn.x,
-  //   firstenemySpawn.y,
-  //   "skeleton"
-  // );
-
-  // enemies2 = this.physics.add.sprite(766, 186, "skeleton");
-
-  // // player.setSize(40, 80);
-  // enemies.setSize(40, 80);
-  // enemies2.setSize(40, 80);
-
-  // obstacles = this.add.group();
-  // obstacles.add(player);
-  // obstacles.add(perimetroLayer);
-  // obstacles.add(muriLayer);
-
-  //create raycaster
-
-  //create ray
-
-  // enemy1 = new rayCasterEnemie(this, enemies, 160, 300, muriLayer, obstacles);
-  // enemy2 = new rayCasterEnemie(this, enemies2, 160, 300, muriLayer, obstacles);
-
-  // enemy1.initializeRays();
-  // enemy2.initializeRays();
-
-  //cast ray in all directions
-  //draw rays
-
-  graphics = this.add.graphics({
-    lineStyle: { width: 1, color: 0x00ff00 },
-    fillStyle: { color: 0xffffff, alpha: 0.3 },
-  });
-
-  // drawDebugViewRayCasting();
 
   background.setCollisionByProperty({ collides: true });
   porteChiuse.setCollisionByProperty({ collides: true });
@@ -260,14 +237,15 @@ function create() {
   this.physics.add.collider(player1.player, background);
   this.physics.add.collider(player1.player, decorazioniTerreno);
   this.physics.add.overlap(player1.player, ground);
+  // this.physics.add.overlap(sprite, healthGroup, spriteHitHealth);
   // this.physics.add.collider(enemies, perimetroLayer);
   // this.physics.add.collider(enemies2, perimetroLayer);
 }
 
 //* UPDATE FUNCTION SECTION --------------------------------------------------------
 function update() {
-
-  // console.log(goblinGroup);
+  var pointer = this.input.activePointer;
+  
 
   var tileTrappole = trappoleTerreno.getTileAtWorldXY(
     player1.player.x,
@@ -287,14 +265,30 @@ function update() {
   );
   //------------------------------------------------------------------------------------
   //Movimenti giocatore
-  player1.player.tint = 0xffff00;
+  // player1.player.tint = 0xffff00;
   player1.player.body.setVelocity(0);
   if (tileLevel) player1.changeLevel(tileLevel);
   // enemies.body.setVelocity(0);
   // enemies2.body.setVelocity(0);
-    for (let goblinEnemy of goblinGroup) {
-      goblinEnemy.goblinChasePlayer(tileAttackPlayer, checkForPlayer, player1.player);
-    }
+  for (let goblinEnemy of goblinGroup) {
+    goblinEnemy.goblinChasePlayer(
+      tileAttackPlayer,
+      checkForPlayer,
+      player1.player
+    );
+    
+  }
+
+
+  //DANNO CON ATTACCO RILEVAMENTO DA FINIRE MA FUNZIONANTE
+for (let goblinEnemy of goblinGroup) {
+  var boundsA = goblinEnemy.goblin.getBounds();
+  var boundsB = player1.swordSlash.getBounds();
+  if(Phaser.Geom.Intersects.RectangleToRectangle(boundsA, boundsB)){
+    console.log("colpito");
+  }
+}
+  
 
   if (tileTrappole) {
     if (
@@ -303,7 +297,7 @@ function update() {
       tileTrappole.index == 127 ||
       tileTrappole.index == 128
     ) {
-      player1.player.tint = 0xff00ff;
+      // player1.player.tint = 0xff00ff;
     }
   }
 
@@ -323,7 +317,7 @@ function update() {
         player1.player.setOffset(70, 0);
       } else {
         player1.player.setOffset(35, 0);
-      } // console.log("MORTO");
+      } 
     }
   } else {
     player1.movement(25);
@@ -334,6 +328,8 @@ function update() {
       player1.player.setOffset(35, 25);
     }
   }
+
+  
 
   player1.player.body.velocity.normalize().scale(player1.velocityPlayer);
   // enemies.body.velocity.normalize().scale(velocityEnemy);
