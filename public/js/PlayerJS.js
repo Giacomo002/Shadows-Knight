@@ -1,265 +1,310 @@
-function playerObj(map, cursors, game) {
-  this.game = game;
-  this.cursors = cursors;
-  this.map = map;
+class playerObj {
+  constructor(cursors, game, map) {
+    this.game = game;
+    this.cursors = cursors;
+    this.map = map;
 
-  this.player;
-  this.sword;
-  this.swordAnimation;
-  this.currentLevel = 0;
-  this.attack = false;
-  this.inAttack = false;
-  this.swordTween;
-  this.swordSlash;
-  this.oldSwordposition;
-  this.swordRotValue;
+    this.player;
+    this.sword;
+    this.swordAnimation;
+    this.currentLevel = 0;
+    this.attack = false;
+    this.inAttack = false;
+    this.swordTween;
+    this.swordSlash;
+    this.oldSwordposition;
+    this.swordRotValue;
 
-  this.playerSpawnPoint;
-  this.velocityPlayer = 300;
+    this.playerSpawnPoint;
+    this.velocityPlayer = 340;
+    this.playerHealth = 100;
+    this.bar;
 
-  
+    this.makeBar = (color) => {
+      //draw the bar
+      this.mask = this.game.add.image(
+        window.innerWidth / 2,
+        window.innerHeight / 2,
+        "mask"
+      );
+      this.barBackground = this.game.add.graphics();
+      this.bar = this.game.add.graphics();
+      this.barUi = this.game.add.image(250, 70, "healthBarUi");
 
-  this.playerInitialize = () => {
-    this.playerSpawnPoint = this.map.findObject(
-      "SpawnGiocatore",
-      (obj) => obj.name === "Spawn Giocatore"
-    );
+      //color the bar
+      this.barBackground.fillStyle(0x242a36, 1);
+      this.bar.fillStyle(color, 1);
 
-    this.player = this.game.physics.add.sprite(
-      this.playerSpawnPoint.x,
-      this.playerSpawnPoint.y,
-      "knight-i"
-    );
+      //fill the bar with a rectangle
+      this.barBackground.fillRect(0, 0, 290, 50);
+      this.bar.fillRect(0, 0, 290, 50);
 
-    this.player.setSize(40, 65);
-    this.player.setOffset(35, 25);
+      //position the bar
+      this.bar.x = 145;
+      this.bar.y = 40;
+      this.barBackground.x = 145;
+      this.barBackground.y = 40;
 
-    this.game.anims.create({
-      key: "knight-run",
-      frames: this.game.anims.generateFrameNumbers("knight-r", {
-        start: 0,
-        end: 5,
-      }),
-      frameRate: 11,
-      repeat: -1,
-    });
+      this.mask.setScrollFactor(0, 0);
+      this.barBackground.setScrollFactor(0, 0);
+      this.bar.setScrollFactor(0, 0);
+      this.barUi.setScrollFactor(0, 0);
 
-    this.game.anims.create({
-      key: "knight-idle",
-      frames: this.game.anims.generateFrameNumbers("knight-i", {
-        start: 0,
-        end: 5,
-      }),
-      frameRate: 11,
-      repeat: -1,
-    });
+      this.mask.setDepth(1);
+      this.barBackground.setDepth(1);
+      this.bar.setDepth(1);
+      this.barUi.setDepth(1);
+    };
 
-    this.sword = this.game.physics.add.sprite(
-      this.player.x,
-      this.player.y,
-      "sword-knight"
-    );
+    this.healthBarUpdate = () => {
+      //scale the bar
+      this.bar.scaleX = this.playerHealth / 100;
+      this.bar.setScrollFactor(0, 0);
+      //position the bar
+      // this.bar.x = this.player.x;
+      // this.bar.y = this.player.y;
+    };
 
-    this.sword.setOrigin(-0.2, 0.5);
+    this.playerInitialize = (enemyGoblinBody) => {
+      this.playerSpawnPoint = this.map.map.findObject(
+        "SpawnGiocatore",
+        (obj) => obj.name === "Spawn Giocatore"
+      );
 
-    this.swordSlash = this.game.physics.add.sprite(
-      this.sword.x,
-      this.sword.y,
-      "sword-slash"
-    );
+      this.player = this.game.physics.add.sprite(
+        this.playerSpawnPoint.x,
+        this.playerSpawnPoint.y,
+        "knight-i"
+      );
 
-  this.swordSlash.setOrigin(-0.5, 0.5);
-    this.game.anims.create({
-      key: "s-k-slash",
-      frames: this.game.anims.generateFrameNumbers("sword-slash", {
-        start: 0,
-        end: 2,
-      }),
-      frameRate: 11,
-      repeat: 0,
-    });
+      this.player.setSize(40, 45);
+      this.player.setOffset(35, 40);
 
-    this.swordSlash.visible = false;
+      this.game.anims.create({
+        key: "knight-run",
+        frames: this.game.anims.generateFrameNumbers("knight-r", {
+          start: 0,
+          end: 5,
+        }),
+        frameRate: 11,
+        repeat: -1,
+      });
 
-    this.swordTween = this.game.tweens.add({
-      targets: this.sword,
-      duration: 100,
-      rotation: 0,
-      yoyo: false,
-    });
+      this.game.anims.create({
+        key: "knight-idle",
+        frames: this.game.anims.generateFrameNumbers("knight-i", {
+          start: 0,
+          end: 5,
+        }),
+        frameRate: 11,
+        repeat: -1,
+      });
 
-     this.swordSlash.on("animationcomplete", () => {
-       this.swordSlash.visible = false;
-     });
+      this.sword = this.game.add.sprite(
+        this.player.x,
+        this.player.y,
+        "sword-knight"
+      );
 
-    this.player.body.setVelocity(0);
-    this.player.anims.play("knight-idle");
-  };
+      this.sword.setOrigin(-0.2, 0.5);
 
-  this.changeDirection = () => {
-    if (this.player.body.velocity.x < 0) {
-      this.player.scaleX = -1;
-      this.sword.scaleX = -1;
-    } else {
-      this.player.scaleX = 1;
-      this.sword.scaleX = 1;
-    }
-  };
+      this.swordSlash = this.game.add.sprite(
+        this.sword.x,
+        this.sword.y,
+        "sword-slash"
+      );
+      this.swordSlash.alpha = 0.8;
+      this.swordSlash.setOrigin(-0.6, 0.3);
+      this.game.anims.create({
+        key: "s-k-slash",
+        frames: this.game.anims.generateFrameNumbers("sword-slash", {
+          start: 0,
+          end: 2,
+        }),
+        frameRate: 11,
+        repeat: 0,
+      });
 
-  this.movement = (offsetY) => {
-    this.cursors = this.game.input.keyboard.addKeys({
-      up: Phaser.Input.Keyboard.KeyCodes.W,
-      down: Phaser.Input.Keyboard.KeyCodes.S,
-      left: Phaser.Input.Keyboard.KeyCodes.A,
-      right: Phaser.Input.Keyboard.KeyCodes.D,
-    });
+      this.swordSlash.visible = false;
+      this.swordSlash.setDepth(0.5);
 
-    if (this.cursors.left.isDown && this.cursors.up.isDown) {
-      this.player.setVelocityX(-this.velocityPlayer);
-      this.player.setVelocityY(-this.velocityPlayer);
+      this.swordTween = this.game.tweens.add({
+        targets: this.sword,
+        duration: 100,
+        rotation: 0,
+        yoyo: false,
+      });
 
-      this.player.body.setOffset(70, offsetY);
+      this.swordSlash.on("animationcomplete", () => {
+        this.swordSlash.visible = false;
+      });
 
-      this.player.anims.play("knight-run", true);
-    } else if (this.cursors.right.isDown && this.cursors.up.isDown) {
-      this.player.setVelocityX(this.velocityPlayer);
-      this.player.setVelocityY(-this.velocityPlayer);
+      this.makeBar(0xac3232);
+      this.healthBarUpdate();
 
-      this.player.setOffset(35, offsetY);
-      this.player.anims.play("knight-run", true);
-    } else if (this.cursors.left.isDown && this.cursors.down.isDown) {
-      this.player.setVelocityX(-this.velocityPlayer);
-      this.player.setVelocityY(this.velocityPlayer);
-
-      this.player.body.setOffset(70, offsetY);
-      this.player.anims.play("knight-run", true);
-    } else if (this.cursors.right.isDown && this.cursors.down.isDown) {
-      this.player.setVelocityX(this.velocityPlayer);
-      this.player.setVelocityY(this.velocityPlayer);
-
-      this.player.setOffset(35, offsetY);
-      this.player.anims.play("knight-run", true);
-    } else if (this.cursors.left.isDown) {
-      this.player.setVelocityX(-this.velocityPlayer);
-
-      this.player.setOffset(70, offsetY);
-      this.player.anims.play("knight-run", true);
-    } else if (this.cursors.right.isDown) {
-      this.player.setVelocityX(this.velocityPlayer);
-
-      this.player.setOffset(35, offsetY);
-      this.player.anims.play("knight-run", true);
-    } else if (this.cursors.up.isDown) {
-      this.player.setVelocityY(-this.velocityPlayer);
-
-      this.player.setOffset(35, offsetY);
-      this.player.anims.play("knight-run", true);
-    } else if (this.cursors.down.isDown) {
-      this.player.setVelocityY(this.velocityPlayer);
-
-      this.player.setOffset(35, offsetY);
-      this.player.anims.play("knight-run", true);
-    } else {
       this.player.body.setVelocity(0);
-      this.player.anims.play("knight-idle", true);
-    }
+      this.player.anims.play("knight-idle");
 
-    this.sword.x = this.player.x;
-    this.sword.y = this.player.y;
+      this.game.physics.add.collider(this.player, this.map.background);
+      this.game.physics.add.collider(this.player, this.map.decorazioniTerreno);
+      this.game.physics.collide(this.player, this.map.walls);
+      this.game.physics.add.overlap(this.player, this.map.ground);
+      this.game.physics.add.collider(this.player, enemyGoblinBody);
+    };
 
-    this.swordSlash.x = this.sword.x;
-    this.swordSlash.y = this.sword.y;
 
-    if (this.swordTween.isPlaying()) {
-      console.log("ciao");
-    }
+    this.movement = (offsetY) => {
+      this.cursors = this.game.input.keyboard.addKeys({
+        up: Phaser.Input.Keyboard.KeyCodes.W,
+        down: Phaser.Input.Keyboard.KeyCodes.S,
+        left: Phaser.Input.Keyboard.KeyCodes.A,
+        right: Phaser.Input.Keyboard.KeyCodes.D,
+      });
 
-    if (!this.swordTween.isPlaying()) {
-      if (this.sword.rotation < -1.69 || this.sword.rotation > 1.69) {
-        this.player.scaleX = -1;
-        // this.sword.scaleX = -1;
-        this.sword.setTexture("sword-flip-knight");
-        this.sword.rotation = Phaser.Math.Angle.Between(
-          this.player.x,
-          this.player.y,
-          this.game.input.mousePointer.x + this.game.cameras.main.scrollX,
-          this.game.input.mousePointer.y + this.game.cameras.main.scrollY
-        );
-        this.swordSlash.rotation = Phaser.Math.Angle.Between(
-          this.player.x,
-          this.player.y,
-          this.game.input.mousePointer.x + this.game.cameras.main.scrollX,
-          this.game.input.mousePointer.y + this.game.cameras.main.scrollY
-        );
-      } else if (this.sword.rotation > -1.69 || this.sword.rotation < 1.69) {
-        this.player.scaleX = 1;
-        // this.sword.scaleX = 1;
-        this.sword.setTexture("sword-knight");
-        this.sword.rotation = Phaser.Math.Angle.Between(
-          this.player.x,
-          this.player.y,
-          this.game.input.mousePointer.x + this.game.cameras.main.scrollX,
-          this.game.input.mousePointer.y + this.game.cameras.main.scrollY
-        );
-        this.swordSlash.rotation = Phaser.Math.Angle.Between(
-          this.player.x,
-          this.player.y,
-          this.game.input.mousePointer.x + this.game.cameras.main.scrollX,
-          this.game.input.mousePointer.y + this.game.cameras.main.scrollY
-        );
+      if (this.cursors.left.isDown && this.cursors.up.isDown) {
+        this.player.setVelocityX(-this.velocityPlayer);
+        this.player.setVelocityY(-this.velocityPlayer);
+
+        this.player.body.setOffset(70, offsetY);
+
+        this.player.anims.play("knight-run", true);
+      } else if (this.cursors.right.isDown && this.cursors.up.isDown) {
+        this.player.setVelocityX(this.velocityPlayer);
+        this.player.setVelocityY(-this.velocityPlayer);
+
+        this.player.setOffset(35, offsetY);
+        this.player.anims.play("knight-run", true);
+      } else if (this.cursors.left.isDown && this.cursors.down.isDown) {
+        this.player.setVelocityX(-this.velocityPlayer);
+        this.player.setVelocityY(this.velocityPlayer);
+
+        this.player.body.setOffset(70, offsetY);
+        this.player.anims.play("knight-run", true);
+      } else if (this.cursors.right.isDown && this.cursors.down.isDown) {
+        this.player.setVelocityX(this.velocityPlayer);
+        this.player.setVelocityY(this.velocityPlayer);
+
+        this.player.setOffset(35, offsetY);
+        this.player.anims.play("knight-run", true);
+      } else if (this.cursors.left.isDown) {
+        this.player.setVelocityX(-this.velocityPlayer);
+
+        this.player.setOffset(70, offsetY);
+        this.player.anims.play("knight-run", true);
+      } else if (this.cursors.right.isDown) {
+        this.player.setVelocityX(this.velocityPlayer);
+
+        this.player.setOffset(35, offsetY);
+        this.player.anims.play("knight-run", true);
+      } else if (this.cursors.up.isDown) {
+        this.player.setVelocityY(-this.velocityPlayer);
+
+        this.player.setOffset(35, offsetY);
+        this.player.anims.play("knight-run", true);
+      } else if (this.cursors.down.isDown) {
+        this.player.setVelocityY(this.velocityPlayer);
+
+        this.player.setOffset(35, offsetY);
+        this.player.anims.play("knight-run", true);
+      } else {
+        this.player.body.setVelocity(0);
+        this.player.anims.play("knight-idle", true);
       }
 
-      // if (this.sword.rotation < -1.69 || this.sword.rotation > 1.69) {
-      //   this.sword.tint = 0xffff00;
-      // } else if (this.sword.rotation > -1.69 || this.sword.rotation < 1.69) {
-      //   this.sword.tint = 0xff00ff;
-      // }
+      this.sword.x = this.player.x;
+      this.sword.y = this.player.y;
 
-      this.oldSwordposition = this.sword.rotation;
+      this.swordSlash.x = this.sword.x;
+      this.swordSlash.y = this.sword.y;
 
-      if (this.oldSwordposition < -1.69 || this.oldSwordposition > 1.69) {
-        this.swordRotValue = this.oldSwordposition - Phaser.Math.DegToRad(80);
-      } else if (
-        this.oldSwordposition > -1.69 ||
-        this.oldSwordposition < 1.69
-      ) {
-        this.swordRotValue = this.oldSwordposition + Phaser.Math.DegToRad(80);
+
+      if (!this.swordTween.isPlaying()) {
+        if (this.sword.rotation < -1.69 || this.sword.rotation > 1.69) {
+          this.sword.setTexture("sword-flip-knight");
+          this.sword.rotation = Phaser.Math.Angle.Between(
+            this.player.x,
+            this.player.y,
+            this.game.input.mousePointer.x + this.game.cameras.main.scrollX,
+            this.game.input.mousePointer.y + this.game.cameras.main.scrollY
+          );
+          this.swordSlash.rotation = Phaser.Math.Angle.Between(
+            this.player.x,
+            this.player.y,
+            this.game.input.mousePointer.x + this.game.cameras.main.scrollX,
+            this.game.input.mousePointer.y + this.game.cameras.main.scrollY
+          );
+        } else if (this.sword.rotation > -1.69 || this.sword.rotation < 1.69) {
+          this.sword.setTexture("sword-knight");
+          this.sword.rotation = Phaser.Math.Angle.Between(
+            this.player.x,
+            this.player.y,
+            this.game.input.mousePointer.x + this.game.cameras.main.scrollX,
+            this.game.input.mousePointer.y + this.game.cameras.main.scrollY
+          );
+          this.swordSlash.rotation = Phaser.Math.Angle.Between(
+            this.player.x,
+            this.player.y,
+            this.game.input.mousePointer.x + this.game.cameras.main.scrollX,
+            this.game.input.mousePointer.y + this.game.cameras.main.scrollY
+          );
+        }
+
+        if (this.sword.rotation < -1.69 || this.sword.rotation > 1.69) {
+          // this.sword.tint = 0xffff00;
+          this.player.scaleX = -1;
+          this.swordSlash.setOrigin(-0.6, 0.7);
+        } else if (this.sword.rotation > -1.69 || this.sword.rotation < 1.69) {
+          // this.sword.tint = 0xff00ff;
+          this.player.scaleX = 1;
+          this.swordSlash.setOrigin(-0.6, 0.3);
+        }
+
+
+        this.oldSwordposition = this.sword.rotation;
+
+        if (this.oldSwordposition < -1.69 || this.oldSwordposition > 1.69) {
+          this.swordRotValue = this.oldSwordposition - Phaser.Math.DegToRad(80);
+        } else if (this.oldSwordposition > -1.69 ||
+          this.oldSwordposition < 1.69) {
+          this.swordRotValue = this.oldSwordposition + Phaser.Math.DegToRad(80);
+        }
       }
-    }
-  };
+    };
 
-  this.resetTween = () => {
-    if (this.swordTween) {
-      this.swordTween.pause();
-    }
-    this.sword.rotation = Phaser.Math.Angle.Between(
-      this.player.x,
-      this.player.y,
-      this.game.input.mousePointer.x + this.game.cameras.main.scrollX,
-      this.game.input.mousePointer.y + this.game.cameras.main.scrollY
-    );
-  };
+    this.resetTween = () => {
+      if (this.swordTween) {
+        this.swordTween.pause();
+      }
+      this.sword.rotation = Phaser.Math.Angle.Between(
+        this.player.x,
+        this.player.y,
+        this.game.input.mousePointer.x + this.game.cameras.main.scrollX,
+        this.game.input.mousePointer.y + this.game.cameras.main.scrollY
+      );
+    };
 
-  this.animationStopped = () => {
-    this.swordSlash.visible = false;
-  };
+    this.animationStopped = () => {
+      this.swordSlash.visible = false;
+    };
 
-  this.swordAttackAnimation = () => {
-    this.swordTween = this.game.tweens.add({
-      targets: this.sword,
-      duration: 130,
-      rotation: this.swordRotValue,
-      ease: "Cubic",
-    });
+    this.swordAttackAnimation = () => {
+      
+      this.swordTween = this.game.tweens.add({
+        targets: this.sword,
+        duration: 130,
+        rotation: this.swordRotValue,
+        ease: "Cubic",
+      });
 
-    this.swordTween.restart();
-    this.swordSlash.visible = true;
-    this.swordSlash.anims.play("s-k-slash");
-  };
+      this.swordTween.restart();
+      this.swordSlash.visible = true;
+      this.swordSlash.anims.play("s-k-slash");
+    };
 
-  this.changeLevel = (tile) => {
-    this.currentLevel = tile.properties.level;
-  };
+    this.changeLevel = (tile) => {
+      this.currentLevel = tile.properties.level;
+    };
+  }
 }
 
 export { playerObj };

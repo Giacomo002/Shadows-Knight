@@ -1,7 +1,7 @@
 import { playerObj } from "./PlayerJS.js";
-import { goblinObj } from "./EnemyJS.js";
-import { drawDebugViewRayCasting } from "./functions.js";
-import { rayCasterEnemie } from "./rayCasterFunctions.js";
+import { GoblinObj } from "./EnemyJS.js";
+import { Mrpas } from "./mrpas.js";
+import { mapObj } from "./map.js";
 
 var config = {
   type: Phaser.AUTO,
@@ -37,8 +37,10 @@ var config = {
 
 let cursors;
 let player1;
+let map1;
 
-let goblinGroup = [];
+let goblinGroupEntity = [];
+let goblinGroupBody = [];
 let slime;
 let flyEye;
 
@@ -55,12 +57,21 @@ let enemy2;
 let platforms;
 let velocityEnemy = 100;
 let graphics;
-let obstaclesEnemys;
+
+let imgcursor;
 let trappoleTerreno;
 let walls;
 let background;
+let ground;
 let checkForPlayer;
 let levelChecker;
+
+let fov;
+let graphic;
+let enemyCount;
+let text;
+let r1;
+let r2;
 
 let game = new Phaser.Game(config);
 
@@ -115,6 +126,14 @@ function preload() {
     frameWidth: 96,
     frameHeight: 96,
   });
+  this.load.spritesheet("goblin-rL", "asset/enemies/goblin/goblinRunL.png", {
+    frameWidth: 96,
+    frameHeight: 96,
+  });
+  this.load.spritesheet("goblin-rR", "asset/enemies/goblin/goblinrRunR.png", {
+    frameWidth: 96,
+    frameHeight: 96,
+  });
 
   this.load.spritesheet("slime-i", "asset/enemies/slime/slimeIdle.png", {
     frameWidth: 96,
@@ -129,6 +148,10 @@ function preload() {
       frameHeight: 96,
     }
   );
+
+  this.load.image("invisibleMask", "asset/invisibleMask.png");
+  this.load.image("healthBarUi", "asset/ui/health_ui16.png");
+  this.load.image("mask", "asset/ui/mask.png");
 }
 
 //* CREATE FUNCTION SECTION --------------------------------------------------------
@@ -136,81 +159,38 @@ function create() {
   cursors = this.input.keyboard.createCursorKeys();
   this.input.mouse.disableContextMenu();
 
-  const map = this.make.tilemap({ key: "map" });
+  map1 = new mapObj(this);
 
-  const tileset1 = map.addTilesetImage("fullTilemap", "tiles");
-  const tileset2 = map.addTilesetImage("fullSpritesheet", "tilesSecond");
-  const tileset3 = map.addTilesetImage("background2", "tiles-background");
-  const tileset4 = map.addTilesetImage("background", "tiles-background1");
-  const tileset5 = map.addTilesetImage(
-    "attackPlayerTiles",
-    "attackPlayerTiles"
+  map1.mapInitialize();
+
+  imgcursor = this.input.setDefaultCursor(
+    "url(asset/ui/crosshair_180x80.png), pointer"
   );
-  const tileset6 = map.addTilesetImage("levelportal", "levelportal");
 
-  background = map.createLayer("background", tileset3);
-  checkForPlayer = map.createLayer("CheckForPlayer", tileset5);
-  levelChecker = map.createLayer("levelChecker", tileset5);
-  const ground = map.createLayer("ground", [tileset1, tileset4]);
-  const stairs = map.createLayer("stairs", tileset1);
-  walls = map.createLayer("walls", tileset1);
-  trappoleTerreno = map.createDynamicLayer("trappoleTerreno", tileset2);
-  const porteChiuse = map.createLayer("porteChiuse", tileset2, 0, 0);
+  
 
-  const decorazioniTerreno = map.createLayer("decorazioniTerreno", tileset1);
-  const decorazioniMuro = map.createDynamicLayer("decorazioniMuro", [
-    tileset1,
-    tileset2,
-  ]);
+  player1 = new playerObj(cursors, this, map1);
 
-  const structures = map.createLayer("structures", tileset1);
-  const upperWalls = map.createLayer("upperWalls", tileset1);
-  const upperWalls2 = map.createLayer("upperWalls2", tileset1);
+  player1.playerInitialize(goblinGroupBody);
 
-  upperWalls.setDepth(1);
-  upperWalls.setDepth(1);
-  upperWalls2.setDepth(1);
-  background.setDepth(1);
-  structures.setDepth(1);
+  map1.getPlayer(player1);
 
-  this.input.setDefaultCursor("url(asset/ui/crosshair_180x80.png), pointer");
+  arrayGoblinslevel1 = map1.map.objects[3].objects;
 
-  player1 = new playerObj(map, cursors, this);
-
-  player1.playerInitialize();
-
-  // console.log(map.objects);
-
-  arrayGoblinslevel1 = map.objects[3].objects;
+  //-----------------------------------------
+  //ENEMIES GOBLIN
+  for (let position of arrayGoblinslevel1) {
+    tempGoblin = new GoblinObj(position, this, map1, player1);
+    tempGoblin.goblinInitialize();
+    goblinGroupEntity.push(tempGoblin);
+    goblinGroupBody.push(tempGoblin.goblin);
+  }
 
   // arraySlime = map.objects[6].objects;
 
   // arrayFlyEys = map.objects[4].objects;
 
-  this.game.anims.create({
-    key: "goblin-idle",
-    frames: this.game.anims.generateFrameNumbers("goblin-i", {
-      start: 0,
-      end: 5,
-    }),
-    frameRate: 11,
-    repeat: -1,
-  });
-
-  obstaclesEnemys = this.add.group();
-
-  obstaclesEnemys.add(player1.player);
-  obstaclesEnemys.add(background);
-  obstaclesEnemys.add(walls);
-  obstaclesEnemys.add(upperWalls);
-  obstaclesEnemys.add(upperWalls2);
-
-  for (let position of arrayGoblinslevel1) {
-    tempGoblin = new goblinObj(position, obstaclesEnemys, this);
-    tempGoblin.goblinInitialize();
-    goblinGroup.push(tempGoblin);
-    
-  }
+  
 
   this.input.on(
     "pointerdown",
@@ -224,120 +204,102 @@ function create() {
     this
   );
 
+  r1 = this.add.circle(600, 200, 240);
 
+  r1.setStrokeStyle(2, 0x00ff00).setDepth(1);
 
-  background.setCollisionByProperty({ collides: true });
-  porteChiuse.setCollisionByProperty({ collides: true });
-  decorazioniTerreno.setCollisionByProperty({ collides: true });
+  r1.x = player1.player.x;
+  r1.y = player1.player.y;
 
-  this.animatedTiles.init(map);
+  this.animatedTiles.init(map1.map);
 
   this.cameras.main.startFollow(player1.player);
 
-  this.physics.add.collider(player1.player, background);
-  this.physics.add.collider(player1.player, decorazioniTerreno);
-  this.physics.add.overlap(player1.player, ground);
-  // this.physics.add.overlap(sprite, healthGroup, spriteHitHealth);
-  // this.physics.add.collider(enemies, perimetroLayer);
-  // this.physics.add.collider(enemies2, perimetroLayer);
+  text = this.add
+    .text(100, 100, "", { font: "40px Courier", fill: "#00ff00" })
+    .setScrollFactor(0, 0);
+  enemyCount = this.add
+    .text(100, 130, "", { font: "40px Courier", fill: "#00ff00" })
+    .setScrollFactor(0, 0);
+  graphic = this.add.graphics({ lineStyle: { color: 0x00ffff } });
+
+  this.physics.add.collider(goblinGroupBody, goblinGroupBody);
 }
 
 //* UPDATE FUNCTION SECTION --------------------------------------------------------
 function update() {
   var pointer = this.input.activePointer;
-  
 
-  var tileTrappole = trappoleTerreno.getTileAtWorldXY(
-    player1.player.x,
-    player1.player.y
-  );
+  r1.x = player1.player.x;
+  r1.y = player1.player.y;
 
-  var tileMuro = walls.getTileAtWorldXY(player1.player.x, player1.player.y);
-
-  var tileAttackPlayer = checkForPlayer.getTileAtWorldXY(
-    player1.player.x,
-    player1.player.y
-  );
-
-  var tileLevel = levelChecker.getTileAtWorldXY(
+  var tileLevel = map1.levelChecker.getTileAtWorldXY(
     player1.player.x,
     player1.player.y
   );
   //------------------------------------------------------------------------------------
   //Movimenti giocatore
-  // player1.player.tint = 0xffff00;
+  player1.player.tint = 0xffffff;
   player1.player.body.setVelocity(0);
+
+  map1.trapsDamage();
+
+  map1.walls.tint = 0xffff00;
+
+  player1.movement(40);
+  
+  if (player1.player.scaleX == -1) {
+    player1.player.setOffset(70, 40);
+  } else {
+    player1.player.setOffset(35, 40);
+  }
+  player1.player.body.velocity.normalize().scale(player1.velocityPlayer);
+
   if (tileLevel) player1.changeLevel(tileLevel);
-  // enemies.body.setVelocity(0);
-  // enemies2.body.setVelocity(0);
-  for (let goblinEnemy of goblinGroup) {
-    goblinEnemy.goblinChasePlayer(
-      tileAttackPlayer,
-      checkForPlayer,
-      player1.player
-    );
+
+  let eCt = 0;
+  
+  for (let goblinEnemy of goblinGroupEntity) {
+    
+    if (
+      this.cameras.main.worldView.contains(
+        goblinEnemy.goblin.x,
+        goblinEnemy.goblin.y
+      )
+    ) {
+      goblinEnemy.goblin.setActive(true);
+      goblinEnemy.goblin.setVisible(true);
+      goblinEnemy.goblin.tint = 0x00ffff;
+
+      if (
+        Phaser.Math.Distance.BetweenPoints(player1.player, goblinEnemy.goblin) <
+        240
+      ) {
+        eCt += 1;
+        goblinEnemy.goblinChasePlayer(player1.player, goblinGroupBody);
+
+      } else {
+        goblinEnemy.goblin.body.setVelocity(0);
+        goblinEnemy.goblin.anims.play("goblin-idle");
+         
+      }
+    } else {
+      goblinEnemy.goblin.setActive(false);
+      goblinEnemy.goblin.setVisible(false);
+      goblinEnemy.goblin.tint = 0xffffff;
+    }
     
   }
 
+  player1.healthBarUpdate();
 
-  //DANNO CON ATTACCO RILEVAMENTO DA FINIRE MA FUNZIONANTE
-for (let goblinEnemy of goblinGroup) {
-  var boundsA = goblinEnemy.goblin.getBounds();
-  var boundsB = player1.swordSlash.getBounds();
-  if(Phaser.Geom.Intersects.RectangleToRectangle(boundsA, boundsB)){
-    console.log("colpito");
-  }
-}
-  
-
-  if (tileTrappole) {
-    if (
-      tileTrappole.index == 125 ||
-      tileTrappole.index == 126 ||
-      tileTrappole.index == 127 ||
-      tileTrappole.index == 128
-    ) {
-      // player1.player.tint = 0xff00ff;
-    }
+  if (player1.playerHealth == 0) {
+    this.stop();
   }
 
-  if (tileMuro) {
-    if (
-      tileMuro.index == 305 ||
-      tileMuro.index == 304 ||
-      tileMuro.index == 295 ||
-      tileMuro.index == 296 ||
-      tileMuro.index == 306 ||
-      tileMuro.index == 297
-    ) {
-      player1.player.setSize(40, 96);
-      player1.player.setOffset(35, 0);
-      player1.movement(0);
-      if (player1.player.scaleX == -1) {
-        player1.player.setOffset(70, 0);
-      } else {
-        player1.player.setOffset(35, 0);
-      } 
-    }
-  } else {
-    player1.movement(25);
-    player1.player.setSize(40, 65);
-    if (player1.player.scaleX == -1) {
-      player1.player.setOffset(70, 25);
-    } else {
-      player1.player.setOffset(35, 25);
-    }
-  }
+  text.setText("Speed: " + player1.player.body.speed).setDepth(1);
+  enemyCount.setText("Enemy: " + eCt).setDepth(1);
 
-  
-
-  player1.player.body.velocity.normalize().scale(player1.velocityPlayer);
-  // enemies.body.velocity.normalize().scale(velocityEnemy);
-  // enemies2.body.velocity.normalize().scale(velocityEnemy);
-
-  this.physics.collide(player1.player, background);
-  // this.physics.collide(enemies, platforms);
-  // this.physics.collide(enemies2, platforms);
-  // this.physics.collide(player, enemies);
-  // this.physics.collide(player, enemies2);
+  this.physics.collide(player1.player, map1.background);
+  this.physics.collide(player1.player, map1.walls);
 }

@@ -9,6 +9,7 @@
   "author": "Giacomo de Lillo",
   "license": "ISC",
   "dependencies": {
+    "mrpas": "^2.0.0",
     "phaser-tilemap-plus": "^0.10.2"
   }
 }
