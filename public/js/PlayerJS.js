@@ -9,7 +9,7 @@ class playerObj {
     this.swordAnimation;
     this.currentLevel = 0;
     this.attack = false;
-    this.inAttack = false;
+    this.alreadyAttack = false;
     this.swordTween;
     this.swordSlash;
     this.oldSwordposition;
@@ -17,7 +17,6 @@ class playerObj {
 
     this.playerSpawnPoint;
     this.velocityPlayer = 340;
-    this.playerHealth = 100;
     this.bar;
 
     this.makeBar = (color) => {
@@ -58,14 +57,14 @@ class playerObj {
 
     this.healthBarUpdate = () => {
       //scale the bar
-      this.bar.scaleX = this.playerHealth / 100;
+      this.bar.scaleX = this.player.getHealth() / this.player.getMaxHealth();
       this.bar.setScrollFactor(0, 0);
       //position the bar
       // this.bar.x = this.player.x;
       // this.bar.y = this.player.y;
     };
 
-    this.playerInitialize = (enemyGoblinBody) => {
+    this.playerInitialize = (enemyGoblinEntity) => {
       this.playerSpawnPoint = this.map.map.findObject(
         "SpawnGiocatore",
         (obj) => obj.name === "Spawn Giocatore"
@@ -105,16 +104,19 @@ class playerObj {
         this.player.y,
         "sword-knight"
       );
+      this.sword.setSize(40, 45);
+      this.sword.setOrigin(-0.2, 0.7);
 
-      this.sword.setOrigin(-0.2, 0.5);
 
       this.swordSlash = this.game.add.sprite(
         this.sword.x,
         this.sword.y,
         "sword-slash"
       );
+  
       this.swordSlash.alpha = 0.8;
-      this.swordSlash.setOrigin(-0.6, 0.3);
+      this.swordSlash.setOrigin(-0.5, 0.5);
+
       this.game.anims.create({
         key: "s-k-slash",
         frames: this.game.anims.generateFrameNumbers("sword-slash", {
@@ -139,19 +141,45 @@ class playerObj {
         this.swordSlash.visible = false;
       });
 
+      // Add component to *one* game object and assign health=1, minHealth=0, maxHealth=2
+      PhaserHealth.AddTo(this.player, 100, 0, 100);
+
       this.makeBar(0xac3232);
       this.healthBarUpdate();
 
       this.player.body.setVelocity(0);
       this.player.anims.play("knight-idle");
 
+      // Hide and deactivate sprite when health decreases below 0
+      this.player.on("die", function (spr) {
+        spr.setActive(false).setVisible(false);
+      });
+
       this.game.physics.add.collider(this.player, this.map.background);
       this.game.physics.add.collider(this.player, this.map.decorazioniTerreno);
       this.game.physics.collide(this.player, this.map.walls);
+      // this.game.physics.add.overlap(this.swordSlash, this.swordTest, this.test);
       this.game.physics.add.overlap(this.player, this.map.ground);
-      this.game.physics.add.collider(this.player, enemyGoblinBody);
+      this.game.physics.add.collider(this.player, enemyGoblinEntity);
     };
 
+    this.getRotationBetween = (objTarget, mouseTarget) => {
+      if (mouseTarget) {
+        return Phaser.Math.Angle.Between(
+          this.player.x,
+          this.player.y,
+          objTarget.x + this.game.cameras.main.scrollX,
+          objTarget.y + this.game.cameras.main.scrollY
+        );
+      } else {
+        return Phaser.Math.Angle.Between(
+          this.player.x,
+          this.player.y,
+          objTarget.x,
+          objTarget.y
+        );
+      }
+    };
 
     this.movement = (offsetY) => {
       this.cursors = this.game.input.keyboard.addKeys({
@@ -217,55 +245,43 @@ class playerObj {
       this.swordSlash.x = this.sword.x;
       this.swordSlash.y = this.sword.y;
 
-
       if (!this.swordTween.isPlaying()) {
         if (this.sword.rotation < -1.69 || this.sword.rotation > 1.69) {
           this.sword.setTexture("sword-flip-knight");
-          this.sword.rotation = Phaser.Math.Angle.Between(
-            this.player.x,
-            this.player.y,
-            this.game.input.mousePointer.x + this.game.cameras.main.scrollX,
-            this.game.input.mousePointer.y + this.game.cameras.main.scrollY
+          this.sword.setOrigin(-0.2, 0.3);
+          this.sword.rotation = this.getRotationBetween(
+            this.game.input.mousePointer,
+            true
           );
-          this.swordSlash.rotation = Phaser.Math.Angle.Between(
-            this.player.x,
-            this.player.y,
-            this.game.input.mousePointer.x + this.game.cameras.main.scrollX,
-            this.game.input.mousePointer.y + this.game.cameras.main.scrollY
-          );
+          this.swordSlash.rotation = this.sword.rotation;
         } else if (this.sword.rotation > -1.69 || this.sword.rotation < 1.69) {
           this.sword.setTexture("sword-knight");
-          this.sword.rotation = Phaser.Math.Angle.Between(
-            this.player.x,
-            this.player.y,
-            this.game.input.mousePointer.x + this.game.cameras.main.scrollX,
-            this.game.input.mousePointer.y + this.game.cameras.main.scrollY
+          this.sword.setOrigin(-0.2, 0.7);
+          this.sword.rotation = this.getRotationBetween(
+            this.game.input.mousePointer,
+            true
           );
-          this.swordSlash.rotation = Phaser.Math.Angle.Between(
-            this.player.x,
-            this.player.y,
-            this.game.input.mousePointer.x + this.game.cameras.main.scrollX,
-            this.game.input.mousePointer.y + this.game.cameras.main.scrollY
-          );
+          this.swordSlash.rotation = this.sword.rotation;
         }
 
         if (this.sword.rotation < -1.69 || this.sword.rotation > 1.69) {
           // this.sword.tint = 0xffff00;
           this.player.scaleX = -1;
-          this.swordSlash.setOrigin(-0.6, 0.7);
+          // this.swordSlash.setOrigin(-0.6, 0.7);
         } else if (this.sword.rotation > -1.69 || this.sword.rotation < 1.69) {
           // this.sword.tint = 0xff00ff;
           this.player.scaleX = 1;
-          this.swordSlash.setOrigin(-0.6, 0.3);
+          // this.swordSlash.setOrigin(-0.6, 0.3);
         }
-
 
         this.oldSwordposition = this.sword.rotation;
 
         if (this.oldSwordposition < -1.69 || this.oldSwordposition > 1.69) {
           this.swordRotValue = this.oldSwordposition - Phaser.Math.DegToRad(80);
-        } else if (this.oldSwordposition > -1.69 ||
-          this.oldSwordposition < 1.69) {
+        } else if (
+          this.oldSwordposition > -1.69 ||
+          this.oldSwordposition < 1.69
+        ) {
           this.swordRotValue = this.oldSwordposition + Phaser.Math.DegToRad(80);
         }
       }
@@ -283,19 +299,60 @@ class playerObj {
       );
     };
 
-    this.animationStopped = () => {
-      this.swordSlash.visible = false;
+
+    this.attackDamageSystem = (goblinEntity) => {
+      // this.arrowTest0.x = this.sword.x;
+      // this.arrowTest0.y = this.sword.y;
+      // this.arrowTest1.x = this.sword.x;
+      // this.arrowTest1.y = this.sword.y;
+      // this.arrowTest2.x = this.sword.x;
+      // this.arrowTest2.y = this.sword.y;
+      // this.arrowTest3.x = this.sword.x;
+      // this.arrowTest3.y = this.sword.y;
+
+      // this.arrowTest0.rotation =
+      //   this.getRotationBetween(this.game.input.mousePointer, true) + 0.0;
+      // this.arrowTest1.rotation =
+      //   this.getRotationBetween(this.game.input.mousePointer, true) + 0.5;
+      // this.arrowTest2.rotation =
+      //   this.getRotationBetween(this.game.input.mousePointer, true) - 0.5;
+      this.enemyAngle = this.getRotationBetween(goblinEntity.goblin, false);
+
+      this.cursorsAngle = this.getRotationBetween(
+        this.game.input.mousePointer,
+        true
+      );
+      this.limitDamage1 =
+        this.getRotationBetween(this.game.input.mousePointer, true) + 0.5;
+      this.limitDamage2 =
+        this.getRotationBetween(this.game.input.mousePointer, true) - 0.5;
+
+      if (
+        (this.enemyAngle > this.cursorsAngle &&
+          this.enemyAngle < this.limitDamage1) ||
+        (this.enemyAngle > this.limitDamage2 &&
+          this.enemyAngle < this.cursorsAngle) ||
+        this.enemyAngle == this.cursorsAngle
+      ) {
+        if (this.swordSlash._visible && this.swordTween.isPlaying()) {
+          goblinEntity.goblin.damage(6);
+          goblinEntity.hitGoblin.visible = true;
+          goblinEntity.hitGoblin.x = goblinEntity.goblin.x;
+          goblinEntity.hitGoblin.y = goblinEntity.goblin.y;
+          goblinEntity.hitGoblin.anims.play("hit-goblin");
+          console.log(goblinEntity.goblin.getHealth());
+        }
+        
+      }
     };
 
-    this.swordAttackAnimation = () => {
-      
+    this.swordAttack = () => {
       this.swordTween = this.game.tweens.add({
         targets: this.sword,
         duration: 130,
         rotation: this.swordRotValue,
         ease: "Cubic",
       });
-
       this.swordTween.restart();
       this.swordSlash.visible = true;
       this.swordSlash.anims.play("s-k-slash");

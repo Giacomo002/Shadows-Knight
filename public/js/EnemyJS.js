@@ -14,6 +14,10 @@ class GoblinObj {
     this.isAttaccking = false;
     this.targetEscapeAg = new Phaser.Math.Vector2();
 
+    this.hitGoblin;
+    this.deadGoblin;
+    this.alive = true;
+
     this.goblinInitialize = () => {
       this.goblin = this.game.physics.add.sprite(
         this.position.x,
@@ -55,11 +59,63 @@ class GoblinObj {
         repeat: -1,
       });
 
+      this.hitGoblin = this.game.add.sprite(
+        this.goblin.x,
+        this.goblin.y,
+        "hit-e"
+      );
+
+      this.deadGoblin = this.game.add.sprite(
+        this.goblin.x,
+        this.goblin.y,
+        "dead-e"
+      );
+
+      this.hitGoblin.visible = false;
+      this.deadGoblin.visible = false;
+
+      this.hitGoblin.setDepth(1);
+      this.deadGoblin.setDepth(1);
+
+
+      this.game.anims.create({
+        key: "dead-goblin",
+        frames: this.game.anims.generateFrameNumbers("dead-e", {
+          start: 0,
+          end: 3,
+        }),
+        frameRate: 11,
+        repeat: 0,
+      });
+
+      this.game.anims.create({
+        key: "hit-goblin",
+        frames: this.game.anims.generateFrameNumbers("hit-e", {
+          start: 0,
+          end: 2,
+        }),
+        frameRate: 24,
+        repeat: 0,
+      });
+
+      this.hitGoblin.on("animationcomplete", () => {
+        this.hitGoblin.visible = false;
+      });
+
+      this.deadGoblin.on("animationcomplete", () => {
+        this.deadGoblin.visible = false;
+        this.goblin.destroy();
+      });
+
       this.targetEscapeAg.x = this.goblin.x;
       this.targetEscapeAg.y = this.goblin.y;
 
       this.goblin.body.setVelocity(0);
       this.goblin.anims.play("goblin-idle");
+
+      PhaserHealth.AddTo(this.goblin, 110, 0, 100);
+
+      this.goblin.on("die", this.dieGoblin);
 
       this.game.physics.add.collider(this.goblin, this.map.background);
       this.game.physics.add.collider(this.goblin, this.map.decorazioniTerreno);
@@ -68,17 +124,16 @@ class GoblinObj {
 
     this.getRandomUniformMovAroundPlayer = () => {};
 
-    this.goblinChasePlayer = (player, goblinGroupBody) => {
-      this.goblin.tint = 0xff3f00;
+    this.goblinChasePlayer = (player) => {
+      // this.goblin.tint = 0xff3f00;
 
-      if (this.isChasing) {
+      if (this.isChasing && this.goblin.getHealth() > 0) {
         this.goblin.body.setVelocity(0);
 
         const dx = Math.abs(this.goblin.x - player.x);
         const dy = Math.abs(this.goblin.y - player.y);
 
         //radius
-        console.log(this.goblin)
         if (dx > dy) {
           //close gap x
           if (this.goblin.x < player.x) {
@@ -110,6 +165,18 @@ class GoblinObj {
         //   this.getRandomUniformMovAroundPlayer(), null, this.game);
       }
     };
+
+    this.dieGoblin = () => {
+      
+      this.goblin.setActive(false);
+      this.goblin.setVisible(false);
+      this.deadGoblin.x = this.goblin.x;
+      this.deadGoblin.y = this.goblin.y;
+        this.deadGoblin.visible = true;
+        this.deadGoblin.anims.play("dead-goblin");
+        this.alive = false;
+      
+    }
 
     this.changeDirection = () => {
       if (this.goblin.body.velocity.x < 0) {

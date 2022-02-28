@@ -3,13 +3,17 @@
   "version": "1.0.0",
   "description": "Gioco 4dsa",
   "main": "index.html",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Giacomo de Lillo",
   "license": "ISC",
   "dependencies": {
+    "esm": "^3.2.25",
     "mrpas": "^2.0.0",
+    "phaser": "^3.55.2",
+    "phaser-component-health": "^3.0.0",
     "phaser-tilemap-plus": "^0.10.2"
   }
 }

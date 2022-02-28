@@ -114,9 +114,10 @@ class mapObj {
           tileTrappole.index == 126 ||
           tileTrappole.index == 127 ||
           tileTrappole.index == 128) {
-          console.log(tileTrappole.index);
+          
           this.player.player.tint = 0xff00ff;
-          this.player.playerHealth -= 0.5;
+          this.player.player.damage(0.5);
+          
         }
       }
     };
