@@ -115,7 +115,7 @@ class mapObj {
           tileTrappole.index == 127 ||
           tileTrappole.index == 128) {
           
-          this.player.player.tint = 0xff00ff;
+          this.player.player.tint = 0xff3f00;
           this.player.player.damage(0.5);
           
         }

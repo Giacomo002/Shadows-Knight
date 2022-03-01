@@ -10,9 +10,10 @@ class GoblinObj {
     this.goblinSpawnPoint;
     this.velocityGoblin = 95;
 
-    this.isChasing = true;
+    this.isChasing = false;
     this.isAttaccking = false;
-    this.targetEscapeAg = new Phaser.Math.Vector2();
+    this.targetEscapeAg;
+    this.targetChased = false;
 
     this.hitGoblin;
     this.deadGoblin;
@@ -65,6 +66,13 @@ class GoblinObj {
         "hit-e"
       );
 
+      this.swordGoblin = this.game.add.sprite(
+        this.goblin.x,
+        this.goblin.y,
+        "sword-goblin"
+      );
+      this.swordGoblin.setOrigin(-0.1, 0.4);
+
       this.deadGoblin = this.game.add.sprite(
         this.goblin.x,
         this.goblin.y,
@@ -76,7 +84,6 @@ class GoblinObj {
 
       this.hitGoblin.setDepth(1);
       this.deadGoblin.setDepth(1);
-
 
       this.game.anims.create({
         key: "dead-goblin",
@@ -104,28 +111,33 @@ class GoblinObj {
 
       this.deadGoblin.on("animationcomplete", () => {
         this.deadGoblin.visible = false;
+
         this.goblin.destroy();
       });
 
-      this.targetEscapeAg.x = this.goblin.x;
-      this.targetEscapeAg.y = this.goblin.y;
-
       this.goblin.body.setVelocity(0);
-      this.goblin.anims.play("goblin-idle");
+      this.goblin.anims.play("goblin-idle", true);
 
       PhaserHealth.AddTo(this.goblin, 110, 0, 100);
 
-      this.goblin.on("die", this.dieGoblin);
-
+      this.goblin.on("die", this.timerSetToTrue);
+     
       this.game.physics.add.collider(this.goblin, this.map.background);
       this.game.physics.add.collider(this.goblin, this.map.decorazioniTerreno);
       this.game.physics.collide(this.goblin, this.map.walls);
     };
 
-    this.getRandomUniformMovAroundPlayer = () => {};
+    this.getRandomUniformMovAroundPlayer = (objArea) => {
+      this.targetEscapeAg = new Phaser.Math.Vector2();
+      objArea.getRandomPoint(this.targetEscapeAg);
+      // this.targetEscapeAg.floor();
+      return this.targetEscapeAg;
+    };
 
-    this.goblinChasePlayer = (player) => {
+    this.goblinChasePlayer = (player, speedUp) => {
       // this.goblin.tint = 0xff3f00;
+      this.swordGoblin.x = this.goblin.x;
+      this.swordGoblin.y = this.goblin.y;
 
       if (this.isChasing && this.goblin.getHealth() > 0) {
         this.goblin.body.setVelocity(0);
@@ -138,45 +150,91 @@ class GoblinObj {
           //close gap x
           if (this.goblin.x < player.x) {
             //right
-            this.goblin.setVelocity(this.velocityGoblin, 0);
+            this.goblin.setVelocity(this.velocityGoblin + speedUp, 0);
             this.goblin.anims.play("goblin-runR", true);
           } else {
             //left
-            this.goblin.setVelocity(-this.velocityGoblin, 0);
+            this.goblin.setVelocity(-(this.velocityGoblin + speedUp), 0);
             this.goblin.anims.play("goblin-runL", true);
           }
         } else {
           //close gap y
           if (this.goblin.y < player.y) {
             //down
-            this.goblin.setVelocity(0, this.velocityGoblin);
-            this.goblin.anims.play("goblin-runR", true);
+            this.goblin.setVelocity(0, this.velocityGoblin + speedUp);
+            // this.goblin.anims.play("goblin-runR", true);
+            if (this.goblin.x < player.x) {
+              //right
+              this.goblin.anims.play("goblin-runR", true);
+              this.swordGoblin.scaleX = 1;
+            } else {
+              //left
+              this.goblin.anims.play("goblin-runL", true);
+              this.swordGoblin.scaleX = -1;
+            }
           } else {
             //up
-            this.goblin.setVelocity(0, -this.velocityGoblin);
-            this.goblin.anims.play("goblin-runR", true);
+            this.goblin.setVelocity(0, -(this.velocityGoblin + speedUp));
+            // this.goblin.anims.play("goblin-runR", true);
+            if (this.goblin.x < player.x) {
+              //right
+              this.goblin.anims.play("goblin-runR", true);
+              this.swordGoblin.scaleX = 1;
+            } else {
+              //left
+              this.goblin.anims.play("goblin-runL", true);
+              this.swordGoblin.scaleX = -1;
+            }
           }
         }
 
-        this.goblin.body.velocity.normalize().scale(this.velocityGoblin);
-        // this.game.physics.add.overlap(
-        //   this.goblin,
-        //   goblinGroupBody,
-        //   this.getRandomUniformMovAroundPlayer(), null, this.game);
+        this.goblin.body.velocity
+          .normalize()
+          .scale(this.velocityGoblin + speedUp);
       }
     };
 
+     this.timerSetToTrue = () => {
+       this.player.timerGetdamged.paused = true;
+        this.deadGoblin.x = this.goblin.x;
+        this.deadGoblin.y = this.goblin.y;
+       this.dieGoblin();
+     };
     this.dieGoblin = () => {
-      
       this.goblin.setActive(false);
       this.goblin.setVisible(false);
-      this.deadGoblin.x = this.goblin.x;
-      this.deadGoblin.y = this.goblin.y;
-        this.deadGoblin.visible = true;
-        this.deadGoblin.anims.play("dead-goblin");
-        this.alive = false;
+      this.deadGoblin.visible = true;
+      this.swordGoblin.visible = false;
+      this.swordGoblin.destroy();
+      this.deadGoblin.anims.play("dead-goblin");
+      this.alive = false;
       
-    }
+    };
+
+    this.trapsDamage = () => {
+      var tileTrappole = map.trappoleTerreno.getTileAtWorldXY(
+        this.goblin.x,
+        this.goblin.y
+      );
+
+      if (tileTrappole) {
+        if (
+          tileTrappole.index == 125 ||
+          tileTrappole.index == 126 ||
+          tileTrappole.index == 127 ||
+          tileTrappole.index == 128
+        ) {
+          // this.player.player.tint = 0xff00ff;
+          this.goblin.damage(2);
+          this.hitGoblin.visible = true;
+          this.hitGoblin.x = this.goblin.x;
+          this.hitGoblin.y = this.goblin.y;
+          this.hitGoblin.anims.play("hit-goblin");
+          this.goblin.tint = 0xff3f00;
+          console.log("hit");
+        }
+      }
+    };
 
     this.changeDirection = () => {
       if (this.goblin.body.velocity.x < 0) {

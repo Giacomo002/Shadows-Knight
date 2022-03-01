@@ -1,4 +1,4 @@
-class playerObj {
+class PlayerObj {
   constructor(cursors, game, map) {
     this.game = game;
     this.cursors = cursors;
@@ -16,16 +16,25 @@ class playerObj {
     this.swordRotValue;
 
     this.playerSpawnPoint;
-    this.velocityPlayer = 340;
+    this.velocityPlayer = 360;
     this.bar;
+
+    this.r1 = this.game.add.line(200, 200, 0, 0, 300, 0, 0x6666ff);
+    this.r2 = this.game.add.line(200, 200, 0, 0, 300, 0, 0xff3f00);
 
     this.makeBar = (color) => {
       //draw the bar
+      this.maskRed = this.game.add.image(
+        window.innerWidth / 2,
+        window.innerHeight / 2,
+        "mask"
+      );
       this.mask = this.game.add.image(
         window.innerWidth / 2,
         window.innerHeight / 2,
         "mask"
       );
+      
       this.barBackground = this.game.add.graphics();
       this.bar = this.game.add.graphics();
       this.barUi = this.game.add.image(250, 70, "healthBarUi");
@@ -44,21 +53,38 @@ class playerObj {
       this.barBackground.x = 145;
       this.barBackground.y = 40;
 
+      this.maskRed.setScrollFactor(0, 0);
       this.mask.setScrollFactor(0, 0);
       this.barBackground.setScrollFactor(0, 0);
       this.bar.setScrollFactor(0, 0);
       this.barUi.setScrollFactor(0, 0);
 
+      this.maskRed.setDepth(1);
+      this.maskRed.setTintFill(0x990000);
       this.mask.setDepth(1);
       this.barBackground.setDepth(1);
       this.bar.setDepth(1);
       this.barUi.setDepth(1);
     };
 
+    this.colorDarknes = (col, amt) => {
+      
+        var num = parseInt(col, 16);
+        var r = (num >> 16) + amt;
+        var b = ((num >> 8) & 0x00ff) + amt;
+        var g = (num & 0x0000ff) + amt;
+        var newColor = g | (b << 8) | (r << 16);
+        return newColor.toString(16);
+    };
+
     this.healthBarUpdate = () => {
       //scale the bar
       this.bar.scaleX = this.player.getHealth() / this.player.getMaxHealth();
       this.bar.setScrollFactor(0, 0);
+      this.maskRed.alpha =
+        1 - this.player.getHealth() / this.player.getMaxHealth();
+      this.mask.alpha = this.player.getHealth() / this.player.getMaxHealth();
+      
       //position the bar
       // this.bar.x = this.player.x;
       // this.bar.y = this.player.y;
@@ -107,13 +133,12 @@ class playerObj {
       this.sword.setSize(40, 45);
       this.sword.setOrigin(-0.2, 0.7);
 
-
       this.swordSlash = this.game.add.sprite(
         this.sword.x,
         this.sword.y,
         "sword-slash"
       );
-  
+
       this.swordSlash.alpha = 0.8;
       this.swordSlash.setOrigin(-0.5, 0.5);
 
@@ -143,6 +168,15 @@ class playerObj {
 
       // Add component to *one* game object and assign health=1, minHealth=0, maxHealth=2
       PhaserHealth.AddTo(this.player, 100, 0, 100);
+
+      this.timerGetdamged = this.game.time.addEvent({
+        delay: 1500,
+        callback: this.goblinMakedamage,
+        callbackScope: this,
+        loop: true,
+      });
+
+      this.timerGetdamged.paused = true;
 
       this.makeBar(0xac3232);
       this.healthBarUpdate();
@@ -248,6 +282,7 @@ class playerObj {
       if (!this.swordTween.isPlaying()) {
         if (this.sword.rotation < -1.69 || this.sword.rotation > 1.69) {
           this.sword.setTexture("sword-flip-knight");
+
           this.sword.setOrigin(-0.2, 0.3);
           this.sword.rotation = this.getRotationBetween(
             this.game.input.mousePointer,
@@ -256,6 +291,7 @@ class playerObj {
           this.swordSlash.rotation = this.sword.rotation;
         } else if (this.sword.rotation > -1.69 || this.sword.rotation < 1.69) {
           this.sword.setTexture("sword-knight");
+
           this.sword.setOrigin(-0.2, 0.7);
           this.sword.rotation = this.getRotationBetween(
             this.game.input.mousePointer,
@@ -300,32 +336,38 @@ class playerObj {
     };
 
 
+    this.goblinMakedamage = () => {
+      if (!this.timerGetdamged.paused) {
+        this.player.damage(15);
+        if (this.player.tint == 0xffffff) {
+          this.player.tint = 0xff3f00;
+        } else {
+          this.player.tint = 0xffffff;
+        }
+      }
+    };
     this.attackDamageSystem = (goblinEntity) => {
-      // this.arrowTest0.x = this.sword.x;
-      // this.arrowTest0.y = this.sword.y;
-      // this.arrowTest1.x = this.sword.x;
-      // this.arrowTest1.y = this.sword.y;
-      // this.arrowTest2.x = this.sword.x;
-      // this.arrowTest2.y = this.sword.y;
-      // this.arrowTest3.x = this.sword.x;
-      // this.arrowTest3.y = this.sword.y;
-
-      // this.arrowTest0.rotation =
-      //   this.getRotationBetween(this.game.input.mousePointer, true) + 0.0;
-      // this.arrowTest1.rotation =
-      //   this.getRotationBetween(this.game.input.mousePointer, true) + 0.5;
-      // this.arrowTest2.rotation =
-      //   this.getRotationBetween(this.game.input.mousePointer, true) - 0.5;
       this.enemyAngle = this.getRotationBetween(goblinEntity.goblin, false);
-
       this.cursorsAngle = this.getRotationBetween(
         this.game.input.mousePointer,
         true
       );
       this.limitDamage1 =
-        this.getRotationBetween(this.game.input.mousePointer, true) + 0.5;
+        this.getRotationBetween(this.game.input.mousePointer, true) + 0.6;
       this.limitDamage2 =
-        this.getRotationBetween(this.game.input.mousePointer, true) - 0.5;
+        this.getRotationBetween(this.game.input.mousePointer, true) - 0.6;
+
+      this.r1.setDepth(1);
+      this.r2.setDepth(1);
+
+      this.r1.x = this.player.x;
+      this.r1.y = this.player.y;
+
+      this.r2.x = this.player.x;
+      this.r2.y = this.player.y;
+
+      this.r1.rotation = this.limitDamage1;
+      this.r2.rotation = this.limitDamage2;
 
       if (
         (this.enemyAngle > this.cursorsAngle &&
@@ -340,9 +382,8 @@ class playerObj {
           goblinEntity.hitGoblin.x = goblinEntity.goblin.x;
           goblinEntity.hitGoblin.y = goblinEntity.goblin.y;
           goblinEntity.hitGoblin.anims.play("hit-goblin");
-          console.log(goblinEntity.goblin.getHealth());
+          goblinEntity.goblin.tint = 0xff3f00;
         }
-        
       }
     };
 
@@ -364,4 +405,4 @@ class playerObj {
   }
 }
 
-export { playerObj };
+export { PlayerObj };
