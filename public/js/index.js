@@ -1,5 +1,7 @@
 import { PlayerObj } from "./PlayerJS.js";
-import { GoblinObj } from "./EnemyJS.js";
+import { GoblinObj } from "./GoblinJS.js";
+import { FlyEyeObj } from "./FlyEyeJS.js";
+import { SlimeObj } from "./SlimeJS.js";
 import { mapObj } from "./map.js";
 
 var config = {
@@ -33,15 +35,25 @@ let graphic;
 let goblinGroupEntity = [];
 let goblinGroupBody = [];
 
-let tempGoblin;
+let flyEyeGroupEntity = [];
+let flyEyeGroupBody = [];
 
-let arrayGoblinslevel1;
+let slimeGroupEntity = [];
+let slimeGroupBody = [];
+
+let tempGoblin;
+let tempFlyEye;
+let tempSlime;
+
+let arrayGoblins;
+let arrayFlyEys;
+let arraySlime;
+
 let enemyCount;
 let text;
 let r1;
 let r2;
 let r3;
-
 
 let game = new Phaser.Game(config);
 
@@ -116,10 +128,26 @@ function preload() {
     frameWidth: 96,
     frameHeight: 96,
   });
+  this.load.spritesheet("slime-rR", "asset/enemies/slime/slimeRunR.png", {
+    frameWidth: 96,
+    frameHeight: 96,
+  });
+  this.load.spritesheet("slime-rL", "asset/enemies/slime/slimeRunL.png", {
+    frameWidth: 96,
+    frameHeight: 96,
+  });
 
   this.load.spritesheet(
-    "flyEye-i",
-    "asset/enemies/flying creature/flyAnim.png",
+    "flyEye-iL",
+    "asset/enemies/flying creature/flyAnimL.png",
+    {
+      frameWidth: 96,
+      frameHeight: 96,
+    }
+  );
+  this.load.spritesheet(
+    "flyEye-iR",
+    "asset/enemies/flying creature/flyAnimR.png",
     {
       frameWidth: 96,
       frameHeight: 96,
@@ -167,20 +195,40 @@ function create() {
 
   map1.getPlayer(player1);
 
-  arrayGoblinslevel1 = map1.map.objects[3].objects;
+  console.log(map1.map);
+
+  arrayGoblins = map1.map.objects[5].objects;
 
   //-----------------------------------------
   //ENEMIES GOBLIN
-  for (let position of arrayGoblinslevel1) {
+  for (let position of arrayGoblins) {
     tempGoblin = new GoblinObj(position, this, map1, player1);
     tempGoblin.goblinInitialize();
     goblinGroupEntity.push(tempGoblin);
     goblinGroupBody.push(tempGoblin.goblin);
   }
 
-  // arraySlime = map.objects[6].objects;
+  arrayFlyEys = map1.map.objects[3].objects;
 
-  // arrayFlyEys = map.objects[4].objects;
+  //-----------------------------------------
+  //ENEMIES FlyEye
+  for (let position of arrayFlyEys) {
+    tempFlyEye = new FlyEyeObj(position, this, map1, player1);
+    tempFlyEye.flyEyeInitialize();
+    flyEyeGroupEntity.push(tempFlyEye);
+    flyEyeGroupBody.push(tempFlyEye.flyEye);
+  }
+
+  arraySlime = map1.map.objects[4].objects;
+
+  //-----------------------------------------
+  //ENEMIES Slime
+  for (let position of arraySlime) {
+    tempSlime = new SlimeObj(position, this, map1, player1);
+    tempSlime.slimeInitialize();
+    slimeGroupEntity.push(tempSlime);
+    slimeGroupBody.push(tempSlime.slime);
+  }
 
   this.input.on(
     "pointerdown",
@@ -208,7 +256,7 @@ function create() {
   r2.x = player1.player.x;
   r2.y = player1.player.y;
 
-  r3 = this.add.circle(600, 200, 100);
+  r3 = this.add.circle(600, 200, 250);
 
   r3.setStrokeStyle(2, 0x00ffff).setDepth(1);
 
@@ -236,7 +284,6 @@ function create() {
 function update() {
   var pointer = this.input.activePointer;
 
-  
   r1.x = player1.player.x;
   r1.y = player1.player.y;
 
@@ -272,6 +319,7 @@ function update() {
 
   let eCt = 0;
 
+  //! GLOBIN
   for (let goblinEnemy of goblinGroupEntity) {
     if (goblinEnemy.alive) {
       goblinEnemy.goblin.tint = 0xffffff;
@@ -310,12 +358,12 @@ function update() {
                 Phaser.Math.Distance.BetweenPoints(
                   player1.player,
                   goblinEnemy.goblin
-                ) < 100 &&
+                ) < 70 &&
                 goblinEnemy.alive
               ) {
-                player1.timerGetdamged.paused = false;
+                player1.playerGetdamaged = true;
               } else {
-                player1.timerGetdamged.paused = true;
+                player1.playerGetdamaged = false;
               }
             }
           } else {
@@ -326,11 +374,141 @@ function update() {
         } else if (goblinEnemy.goblin.getHealth() > 0) {
           goblinEnemy.goblin.body.setVelocity(0);
           goblinEnemy.goblin.anims.play("goblin-idle", true);
+          // player1.timerGetdamged.paused = true;
         }
       } else {
         goblinEnemy.goblin.setActive(false);
         goblinEnemy.goblin.setVisible(false);
         // goblinEnemy.goblin.tint = 0xffffff;
+        // player1.timerGetdamged.paused = true;
+      }
+    }
+  }
+  //! FLYEYE
+  for (let flyEyeEnemy of flyEyeGroupEntity) {
+    if (flyEyeEnemy.alive) {
+      flyEyeEnemy.flyEye.tint = 0xffffff;
+      if (
+        this.cameras.main.worldView.contains(
+          flyEyeEnemy.flyEye.x,
+          flyEyeEnemy.flyEye.y
+        )
+      ) {
+        flyEyeEnemy.flyEye.setActive(true);
+        flyEyeEnemy.flyEye.setVisible(true);
+        // goblinEnemy.goblin.tint = 0x00ffff;
+
+        if (
+          Phaser.Math.Distance.BetweenPoints(
+            player1.player,
+            flyEyeEnemy.flyEye
+          ) < 300
+        ) {
+          eCt += 1;
+          if (
+            Phaser.Math.Distance.BetweenPoints(
+              player1.player,
+              flyEyeEnemy.flyEye
+            ) < 200
+          ) {
+            flyEyeEnemy.moveSpriteOnCircle();
+            if (
+              Phaser.Math.Distance.BetweenPoints(
+                player1.player,
+                flyEyeEnemy.flyEye
+              ) < 102
+            ) {
+              player1.attackDamageSystem(flyEyeEnemy);
+              if (
+                Phaser.Math.Distance.BetweenPoints(
+                  player1.player,
+                  flyEyeEnemy.flyEye
+                ) < 70 &&
+                flyEyeEnemy.alive
+              ) {
+                player1.playerGetdamaged = true;
+              } else {
+                player1.playerGetdamaged = false;
+              }
+            }
+          } else {
+            flyEyeEnemy.flyEyeChasePlayer(player1.player, 0);
+          }
+
+          flyEyeEnemy.trapsDamage();
+        } else if (flyEyeEnemy.flyEye.getHealth() > 0) {
+          flyEyeEnemy.flyEye.body.setVelocity(0);
+          flyEyeEnemy.flyEye.anims.play("flyEye-idleR", true);
+          // player1.timerGetdamged.paused = true;
+        }
+      } else {
+        flyEyeEnemy.flyEye.setActive(false);
+        flyEyeEnemy.flyEye.setVisible(false);
+        // goblinEnemy.goblin.tint = 0xffffff;
+        // player1.timerGetdamged.paused = true;
+      }
+    }
+  }
+  //! SLIME
+  for (let slimeEnemy of slimeGroupEntity) {
+    if (slimeEnemy.alive) {
+      slimeEnemy.slime.tint = 0xffffff;
+      if (
+        this.cameras.main.worldView.contains(
+          slimeEnemy.slime.x,
+          slimeEnemy.slime.y
+        )
+      ) {
+        slimeEnemy.slime.setActive(true);
+        slimeEnemy.slime.setVisible(true);
+        // goblinEnemy.goblin.tint = 0x00ffff;
+
+        if (
+          Phaser.Math.Distance.BetweenPoints(player1.player, slimeEnemy.slime) <
+          300
+        ) {
+          eCt += 1;
+          if (
+            Phaser.Math.Distance.BetweenPoints(
+              player1.player,
+              slimeEnemy.slime
+            ) < 200
+          ) {
+            slimeEnemy.slimeChasePlayer(player1.player, 30);
+            if (
+              Phaser.Math.Distance.BetweenPoints(
+                player1.player,
+                slimeEnemy.slime
+              ) < 102
+            ) {
+              player1.attackDamageSystem(slimeEnemy);
+              if (
+                Phaser.Math.Distance.BetweenPoints(
+                  player1.player,
+                  slimeEnemy.slime
+                ) < 70 &&
+                slimeEnemy.alive
+              ) {
+                player1.playerGetdamaged = true;
+              } else {
+                player1.playerGetdamaged = false;
+              }
+            }
+          } else {
+            slimeEnemy.slimeChasePlayer(player1.player, 0);
+          }
+
+          slimeEnemy.trapsDamage();
+        } else if (slimeEnemy.slime.getHealth() > 0) {
+          slimeEnemy.slime.body.setVelocity(0);
+          slimeEnemy.slime.anims.play("slime-idle", true);
+          // player1.timerGetdamged.paused = true;
+        }
+      } else {
+        slimeEnemy.slime.setActive(false);
+        slimeEnemy.slime.setVisible(false);
+        // goblinEnemy.goblin.tint = 0xffffff;
+        // player1.timerGetdamged.paused = true;
       }
     }
   }
@@ -354,8 +532,8 @@ function update() {
     .setText(
       "timer: " +
         player1.timerGetdamged.getProgress().toString().substr(0, 4) +
-        " Paused: " +
-        player1.timerGetdamged.paused
+        " Damaged: " +
+        player1.playerGetdamaged
     )
     .setDepth(1);
 

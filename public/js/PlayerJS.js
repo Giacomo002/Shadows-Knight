@@ -17,7 +17,9 @@ class PlayerObj {
 
     this.playerSpawnPoint;
     this.velocityPlayer = 360;
+    this.playerGetdamaged = false;
     this.bar;
+
 
     this.r1 = this.game.add.line(200, 200, 0, 0, 300, 0, 0x6666ff);
     this.r2 = this.game.add.line(200, 200, 0, 0, 300, 0, 0xff3f00);
@@ -163,6 +165,7 @@ class PlayerObj {
       });
 
       this.swordSlash.on("animationcomplete", () => {
+        
         this.swordSlash.visible = false;
       });
 
@@ -176,7 +179,6 @@ class PlayerObj {
         loop: true,
       });
 
-      this.timerGetdamged.paused = true;
 
       this.makeBar(0xac3232);
       this.healthBarUpdate();
@@ -186,6 +188,7 @@ class PlayerObj {
 
       // Hide and deactivate sprite when health decreases below 0
       this.player.on("die", function (spr) {
+        this.game.pause = true;
         spr.setActive(false).setVisible(false);
       });
 
@@ -337,7 +340,7 @@ class PlayerObj {
 
 
     this.goblinMakedamage = () => {
-      if (!this.timerGetdamged.paused) {
+      if (this.playerGetdamaged) {
         this.player.damage(15);
         if (this.player.tint == 0xffffff) {
           this.player.tint = 0xff3f00;
@@ -346,8 +349,8 @@ class PlayerObj {
         }
       }
     };
-    this.attackDamageSystem = (goblinEntity) => {
-      this.enemyAngle = this.getRotationBetween(goblinEntity.goblin, false);
+    this.attackDamageSystem = (enemyEntity) => {
+      this.enemyAngle = this.getRotationBetween(enemyEntity.getBody(), false);
       this.cursorsAngle = this.getRotationBetween(
         this.game.input.mousePointer,
         true
@@ -377,12 +380,7 @@ class PlayerObj {
         this.enemyAngle == this.cursorsAngle
       ) {
         if (this.swordSlash._visible && this.swordTween.isPlaying()) {
-          goblinEntity.goblin.damage(6);
-          goblinEntity.hitGoblin.visible = true;
-          goblinEntity.hitGoblin.x = goblinEntity.goblin.x;
-          goblinEntity.hitGoblin.y = goblinEntity.goblin.y;
-          goblinEntity.hitGoblin.anims.play("hit-goblin");
-          goblinEntity.goblin.tint = 0xff3f00;
+          enemyEntity.playerDamage();
         }
       }
     };

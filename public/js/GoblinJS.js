@@ -8,7 +8,9 @@ class GoblinObj {
     this.player = player;
 
     this.goblinSpawnPoint;
-    this.velocityGoblin = 95;
+    this.velocityGoblin = 90;
+    this.lifeGoblin = 100;
+    this.damageToDie = 5;
 
     this.isChasing = false;
     this.isAttaccking = false;
@@ -118,7 +120,7 @@ class GoblinObj {
       this.goblin.body.setVelocity(0);
       this.goblin.anims.play("goblin-idle", true);
 
-      PhaserHealth.AddTo(this.goblin, 110, 0, 100);
+      PhaserHealth.AddTo(this.goblin, this.lifeGoblin, 0, 100);
 
       this.goblin.on("die", this.timerSetToTrue);
      
@@ -195,7 +197,7 @@ class GoblinObj {
     };
 
      this.timerSetToTrue = () => {
-       this.player.timerGetdamged.paused = true;
+       this.player.playerGetdamaged = false;
         this.deadGoblin.x = this.goblin.x;
         this.deadGoblin.y = this.goblin.y;
        this.dieGoblin();
@@ -231,10 +233,19 @@ class GoblinObj {
           this.hitGoblin.y = this.goblin.y;
           this.hitGoblin.anims.play("hit-goblin");
           this.goblin.tint = 0xff3f00;
-          console.log("hit");
+         
         }
       }
     };
+
+    this.playerDamage = () => {
+      this.goblin.damage(this.damageToDie);
+      this.hitGoblin.visible = true;
+      this.hitGoblin.x = this.goblin.x;
+      this.hitGoblin.y = this.goblin.y;
+      this.hitGoblin.anims.play("hit-goblin");
+      this.goblin.tint = 0xff3f00;
+    }
 
     this.changeDirection = () => {
       if (this.goblin.body.velocity.x < 0) {
@@ -243,6 +254,11 @@ class GoblinObj {
         this.goblin.scaleX = 1;
       }
     };
+
+    this.getBody = () => {
+      return this.goblin;
+    };
+  
   }
 }
 
