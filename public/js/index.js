@@ -4,7 +4,7 @@ import { FlyEyeObj } from "./FlyEyeJS.js";
 import { SlimeObj } from "./SlimeJS.js";
 import { MapObj } from "./map.js";
 import { RayCastPlayer } from "./rayCasterFunctions.js";
-import {} from "./phaser-raycaster.js";
+import {} from "./plugin/phaser-raycaster.js";
 
 var config = {
   type: Phaser.AUTO,
@@ -77,11 +77,7 @@ function preload() {
     "animatedTiles"
   );
 
-  this.load.plugin(
-    "rexrandomplaceplugin",
-    "https://raw.githubusercontent.com/rexrainbow/phaser3-rex-notes/master/dist/rexrandomplaceplugin.min.js",
-    true
-  );
+ 
 
   this.load.tilemapTiledJSON("map", "asset/mappe/mappaGioco.json");
   this.load.image("tiles", "asset/tiles/fullTilemap.png");
