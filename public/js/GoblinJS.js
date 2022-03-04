@@ -114,7 +114,7 @@ class GoblinObj {
       this.deadGoblin.on("animationcomplete", () => {
         this.deadGoblin.visible = false;
 
-        this.goblin.destroy();
+        // this.goblin.destroy();
       });
 
       this.goblin.body.setVelocity(0);
@@ -123,11 +123,13 @@ class GoblinObj {
       PhaserHealth.AddTo(this.goblin, this.lifeGoblin, 0, 100);
 
       this.goblin.on("die", this.timerSetToTrue);
-     
+
       this.game.physics.add.collider(this.goblin, this.map.background);
       this.game.physics.add.collider(this.goblin, this.map.decorazioniTerreno);
       this.game.physics.collide(this.goblin, this.map.walls);
     };
+
+    
 
     this.getRandomUniformMovAroundPlayer = (objArea) => {
       this.targetEscapeAg = new Phaser.Math.Vector2();
@@ -196,21 +198,18 @@ class GoblinObj {
       }
     };
 
-     this.timerSetToTrue = () => {
-       this.player.playerGetdamaged = false;
-        this.deadGoblin.x = this.goblin.x;
-        this.deadGoblin.y = this.goblin.y;
-       this.dieGoblin();
-     };
-    this.dieGoblin = () => {
-      this.goblin.setActive(false);
-      this.goblin.setVisible(false);
-      this.deadGoblin.visible = true;
-      this.swordGoblin.visible = false;
-      this.swordGoblin.destroy();
-      this.deadGoblin.anims.play("dead-goblin");
+    this.timerSetToTrue = () => {
+      this.player.playerGetdamaged = false;
       this.alive = false;
-      
+      this.deadGoblin.x = this.goblin.x;
+      this.deadGoblin.y = this.goblin.y;
+      this.dieGoblin();
+    };
+    this.dieGoblin = () => {
+      this.goblin.alpha = 0;
+      this.deadGoblin.visible = true;
+      this.swordGoblin.alpha = 0;
+      this.deadGoblin.anims.play("dead-goblin");
     };
 
     this.trapsDamage = () => {
@@ -233,7 +232,6 @@ class GoblinObj {
           this.hitGoblin.y = this.goblin.y;
           this.hitGoblin.anims.play("hit-goblin");
           this.goblin.tint = 0xff3f00;
-         
         }
       }
     };
@@ -245,7 +243,7 @@ class GoblinObj {
       this.hitGoblin.y = this.goblin.y;
       this.hitGoblin.anims.play("hit-goblin");
       this.goblin.tint = 0xff3f00;
-    }
+    };
 
     this.changeDirection = () => {
       if (this.goblin.body.velocity.x < 0) {
@@ -258,7 +256,6 @@ class GoblinObj {
     this.getBody = () => {
       return this.goblin;
     };
-  
   }
 }
 

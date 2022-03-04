@@ -20,6 +20,8 @@ class PlayerObj {
     this.playerGetdamaged = false;
     this.bar;
 
+    this.playerRay;
+
 
     this.r1 = this.game.add.line(200, 200, 0, 0, 300, 0, 0x6666ff);
     this.r2 = this.game.add.line(200, 200, 0, 0, 300, 0, 0xff3f00);
@@ -340,6 +342,26 @@ class PlayerObj {
 
 
     this.goblinMakedamage = () => {
+      if (this.playerGetdamaged) {
+        this.player.damage(15);
+        if (this.player.tint == 0xffffff) {
+          this.player.tint = 0xff3f00;
+        } else {
+          this.player.tint = 0xffffff;
+        }
+      }
+    };
+    this.slimeMakedamage = () => {
+      if (this.playerGetdamaged) {
+        this.player.damage(15);
+        if (this.player.tint == 0xffffff) {
+          this.player.tint = 0xff3f00;
+        } else {
+          this.player.tint = 0xffffff;
+        }
+      }
+    };
+    this.flyEyeMakedamage = () => {
       if (this.playerGetdamaged) {
         this.player.damage(15);
         if (this.player.tint == 0xffffff) {

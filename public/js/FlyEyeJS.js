@@ -11,14 +11,14 @@ class FlyEyeObj {
     this.velocityFlyEye = 120;
     this.lifeFlyEye = 100;
     this.damageToDie = 7;
+    this.rangeChasePlayer = 300;
     this.radiusPath = 200;
-    this.velocityCirclePath = 2;
+    this.velocityRadSecPath = 0.001;
 
-    this.isChasing = true;
+    this.isChasing = false;
     this.isAttaccking = false;
     this.targetEscapeAg;
     this.targetChased = false;
-    
 
     this.hitFlyEye;
     this.deadflyEye;
@@ -100,7 +100,7 @@ class FlyEyeObj {
       this.deadflyEye.on("animationcomplete", () => {
         this.deadflyEye.visible = false;
 
-        this.flyEye.destroy();
+        // this.flyEye.destroy();
       });
 
       this.flyEye.body.setVelocity(0);
@@ -122,18 +122,14 @@ class FlyEyeObj {
       return this.targetEscapeAg;
     };
 
-    
-
     this.moveSpriteOnCircle = () => {
-
-     Phaser.Math.RotateAroundDistance(
-       this.flyEye,
-       this.player.player.x,
-       this.player.player.y,
-       0.001,
-       200
-     );
-
+      Phaser.Math.RotateAroundDistance(
+        this.flyEye,
+        this.player.player.x,
+        this.player.player.y,
+        this.velocityRadSecPath,
+        this.radiusPath
+      );
     };
 
     this.flyEyeChasePlayer = (player, speedUp) => {
@@ -181,8 +177,9 @@ class FlyEyeObj {
     };
 
     this.dieflyEye = () => {
-      this.flyEye.setActive(false);
-      this.flyEye.setVisible(false);
+    //   this.flyEye.setActive(false);
+    //   this.flyEye.setVisible(false);
+	  this.flyEye.alpha = 0;
       this.deadflyEye.visible = true;
       this.deadflyEye.anims.play("dead-flyEye");
       this.alive = false;

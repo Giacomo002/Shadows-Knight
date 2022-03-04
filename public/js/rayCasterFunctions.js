@@ -1,67 +1,125 @@
-function rayCasterEnemie(
-    game,
-    guest,
-    shortRange,
-    longRange,
-    // collisionMapLayer,
-    collisionObject,
-) {
-    this.guest = guest;
-    this.originX = guest.x;
-    this.originY = guest.y;
-    this.shortRange = shortRange;
-    this.longRange = longRange;
+class RayCastPlayer {
+  constructor(game, player, collisionLayer, goblinsBodyArray, slimeBodyArray, flyEyeArray) {
+    this.game = game;
+    this.player = player.player;
+    this.raycaster = this.game.raycasterPlugin.createRaycaster();
 
-    this.raycaster = game.raycasterPlugin.createRaycaster();
-    // this.collisionMapLayer = collisionMapLayer;
-    this.collisionObject = collisionObject;
+    this.collisionMapLayer = collisionLayer;
+    this.goblinsArray = goblinsBodyArray;
+    this.slimeArray = slimeBodyArray;
+    this.flyEyeArray = flyEyeArray;
 
-    this.rayShortRange;
-    this.rayLongRange;
-    
-    this.intersectionsShortRange;
-    this.intersectionsLongRange;
+    //Ray variables
+    this.ray;
+    this.graphics;
+    this.maskGraphics;
+    this.mask;
+    this.fow;
+    this.intersections;
 
-    this.initializeRays = function () {
-
-        // this.raycaster.mapGameObjects(this.collisionMapLayer, false, {
-        //   collisionTiles: [5, 6, 8, 12, 13], //array of tile types which collide with rays
-        // });
-
-        this.raycaster.mapGameObjects(this.collisionObject.getChildren(), true);
-
-        this.rayShortRange = this.raycaster.createRay({
-          origin: {
-            x: this.originX,
-            y: this.originY,
-          },
-          //set detection range
-          detectionRange: this.shortRange,
-        });
-
-        this.rayLongRange = this.raycaster.createRay({
-          origin: {
-            x: this.originX,
-            y: this.originY,
-          },
-          //set detection range
-          detectionRange: this.longRange,
-        });
-
-        this.intersectionsShortRange = this.rayShortRange.castCircle();
-        this.intersectionsLongRange = this.rayLongRange.castCircle();
-
-        this.rayShortRange.setOrigin(this.guest.x, this.guest.y);
-        this.rayLongRange.setOrigin(this.guest.x, this.guest.y);
+    //Create field of view
+    this.createFOV = (scene) => {
+      this.maskGraphics = scene.add.graphics({
+        fillStyle: { color: 0xffffff, alpha: 0 },
+      });
+      this.mask = new Phaser.Display.Masks.GeometryMask(
+        scene,
+        this.maskGraphics
+      );
+      this.mask.setInvertAlpha();
+      this.fow = scene.add
+        .graphics({ fillStyle: { color: 0x000000, alpha: 0.6 } })
+        .setDepth(29);
+      this.fow.setMask(this.mask);
+      this.fow.fillRect(0, 0, 800, 600);
     };
-    
-    this.updateRays = function () {
-        this.rayShortRange.setOrigin(this.guest.x, this.guest.y);
-        this.rayLongRange.setOrigin(this.guest.x, this.guest.y);
+    this.rayInitialize = () => {
+      // Create ray
+      this.ray = this.raycaster.createRay({
+        origin: {
+          x: this.player.x,
+          y: this.player.y,
+        },
+        detectionRange: 300,
+      });
 
-        this.intersectionsShortRange = this.rayShortRange.castCircle();
-        this.intersectionsLongRange = this.rayLongRange.castCircle();
-    }
+      this.raycaster.mapGameObjects(this.collisionMapLayer, false, {
+        collisionTiles: [326], //array of tile types which collide with rays
+      });
+
+      this.raycaster.mapGameObjects(
+        Phaser.Utils.Array.GetAll(this.goblinsArray),
+        true
+      );
+      this.raycaster.mapGameObjects(
+        Phaser.Utils.Array.GetAll(this.slimeArray),
+        true
+      );
+      this.raycaster.mapGameObjects(
+        Phaser.Utils.Array.GetAll(this.flyEyeArray),
+        true
+      );
+
+      this.intersections = this.ray.castCircle();
+
+      this.graphics = this.game.add.graphics({
+        lineStyle: { width: 1, color: 0x00ff00},
+        fillStyle: { color: 0xffffff, alpha: 0.3 },
+      });
+
+      //create field of view
+      this.createFOV(this.game);
+
+      this.fow.setDepth(1);
+      this.graphics.setDepth(3);
+      this.graphics.alpha = 0.2;
+    };
+
+    //draw rays intersections
+    this.draw = () => {
+      //clear ray visualisation
+      this.graphics.clear();
+
+      //clear field of view mask
+      this.maskGraphics.clear();
+      //draw fov mask
+      this.maskGraphics.fillPoints(this.intersections);
+    
+      var checkSprite = false;
+
+      //draw rays
+      this.graphics.lineStyle(1, 0x00ff00);
+      for (let intersection of this.intersections) {
+       
+        if (intersection.object != null && intersection.object.body != null) {
+          // console.log(intersection.object);
+          checkSprite = true;
+        }
+          this.graphics.strokeLineShape({
+            x1: this.ray.origin.x,
+            y1: this.ray.origin.y,
+            x2: intersection.x,
+            y2: intersection.y,
+          });
+      }
+
+      this.graphics.fillStyle(0x00ffff);
+
+      //draw ray origin
+      this.graphics.fillPoint(this.ray.origin.x, this.ray.origin.y, 3);
+
+      return checkSprite;
+    };
+
+    this.updateRays = () => {
+      //Set positiion
+      this.ray.setOrigin(this.player.x, this.player.y);
+      //Cast ray in all directions
+      this.intersections = this.ray.castCircle();
+      //Redraw
+      return this.draw();
+    };
+  }
 }
 
-export { rayCasterEnemie };
+export { RayCastPlayer };

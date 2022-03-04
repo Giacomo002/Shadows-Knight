@@ -62,13 +62,7 @@ class SlimeObj {
         repeat: -1,
       });
 
-      this.hitSlime = this.game.add.sprite(
-        this.slime.x,
-        this.slime.y,
-        "hit-e"
-      );
-
-      
+      this.hitSlime = this.game.add.sprite(this.slime.x, this.slime.y, "hit-e");
 
       this.deadslime = this.game.add.sprite(
         this.slime.x,
@@ -109,7 +103,7 @@ class SlimeObj {
       this.deadslime.on("animationcomplete", () => {
         this.deadslime.visible = false;
 
-        this.slime.destroy();
+        // this.slime.destroy();
       });
 
       this.slime.body.setVelocity(0);
@@ -118,7 +112,7 @@ class SlimeObj {
       PhaserHealth.AddTo(this.slime, this.lifeSlime, 0, 100);
 
       this.slime.on("die", this.timerSetToTrue);
-     
+
       this.game.physics.add.collider(this.slime, this.map.background);
       this.game.physics.add.collider(this.slime, this.map.decorazioniTerreno);
       this.game.physics.collide(this.slime, this.map.walls);
@@ -133,7 +127,6 @@ class SlimeObj {
 
     this.slimeChasePlayer = (player, speedUp) => {
       // this.slime.tint = 0xff3f00;
-      
 
       if (this.isChasing && this.slime.getHealth() > 0) {
         this.slime.body.setVelocity(0);
@@ -162,11 +155,9 @@ class SlimeObj {
             if (this.slime.x < player.x) {
               //right
               this.slime.anims.play("slime-runR", true);
-              
             } else {
               //left
               this.slime.anims.play("slime-runL", true);
-             
             }
           } else {
             //up
@@ -175,11 +166,9 @@ class SlimeObj {
             if (this.slime.x < player.x) {
               //right
               this.slime.anims.play("slime-runR", true);
-              
             } else {
               //left
               this.slime.anims.play("slime-runL", true);
-              
             }
           }
         }
@@ -190,20 +179,20 @@ class SlimeObj {
       }
     };
 
-     this.timerSetToTrue = () => {
-       this.player.playerGetdamaged = false;
-        this.deadslime.x = this.slime.x;
-        this.deadslime.y = this.slime.y;
-       this.dieslime();
-     };
+    this.timerSetToTrue = () => {
+      this.player.playerGetdamaged = false;
+      this.deadslime.x = this.slime.x;
+      this.deadslime.y = this.slime.y;
+      this.dieslime();
+    };
     this.dieslime = () => {
-      this.slime.setActive(false);
-      this.slime.setVisible(false);
+    //   this.slime.setActive(false);
+    //   this.slime.setVisible(false);
+	  this.slime.alpha = 0;
       this.deadslime.visible = true;
-    
+
       this.deadslime.anims.play("dead-slime");
       this.alive = false;
-      
     };
 
     this.trapsDamage = () => {
@@ -226,7 +215,6 @@ class SlimeObj {
           this.hitSlime.y = this.slime.y;
           this.hitSlime.anims.play("hit-slime");
           this.slime.tint = 0xff3f00;
-         
         }
       }
     };
@@ -250,7 +238,7 @@ class SlimeObj {
 
     this.getBody = () => {
       return this.slime;
-    }
+    };
   }
 }
 

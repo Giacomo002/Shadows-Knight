@@ -2,7 +2,9 @@ import { PlayerObj } from "./PlayerJS.js";
 import { GoblinObj } from "./GoblinJS.js";
 import { FlyEyeObj } from "./FlyEyeJS.js";
 import { SlimeObj } from "./SlimeJS.js";
-import { mapObj } from "./map.js";
+import { MapObj } from "./map.js";
+import { RayCastPlayer } from "./rayCasterFunctions.js";
+import {} from "./phaser-raycaster.js";
 
 var config = {
   type: Phaser.AUTO,
@@ -23,6 +25,15 @@ var config = {
     preload: preload,
     create: create,
     update: update,
+  },
+  plugins: {
+    scene: [
+      {
+        key: "PhaserRaycaster",
+        plugin: PhaserRaycaster,
+        mapping: "raycasterPlugin",
+      },
+    ],
   },
 };
 
@@ -181,7 +192,7 @@ function create() {
   cursors = this.input.keyboard.createCursorKeys();
   this.input.mouse.disableContextMenu();
 
-  map1 = new mapObj(this);
+  map1 = new MapObj(this);
 
   map1.mapInitialize();
 
@@ -229,6 +240,18 @@ function create() {
     slimeGroupEntity.push(tempSlime);
     slimeGroupBody.push(tempSlime.slime);
   }
+
+  //Define ray vision player
+  player1.playerRay = new RayCastPlayer(
+    this,
+    player1,
+    map1.background,
+    goblinGroupBody,
+    slimeGroupBody,
+    flyEyeGroupBody
+  );
+
+  player1.playerRay.rayInitialize();
 
   this.input.on(
     "pointerdown",
@@ -317,198 +340,213 @@ function update() {
 
   if (tileLevel) player1.changeLevel(tileLevel);
 
-  let eCt = 0;
-
-  //! GLOBIN
-  for (let goblinEnemy of goblinGroupEntity) {
-    if (goblinEnemy.alive) {
+  // * ENEMIES CYCLE ON UPDATE
+  if (player1.playerRay.updateRays()) {
+    //! GLOBIN----------CHASE
+    for (let goblinEnemy of goblinGroupEntity) {
       goblinEnemy.goblin.tint = 0xffffff;
+      if (goblinEnemy.alive) {
+        goblinEnemy.goblin.setActive(true);
+        goblinEnemy.goblin.setVisible(true);
+      }
+      // goblinEnemy.goblin.tint = 0x00ffff;
+      if (
+        Phaser.Math.Distance.BetweenPoints(player1.player, goblinEnemy.goblin) <
+        300
+      ) {
+        if (
+          Phaser.Math.Distance.BetweenPoints(
+            player1.player,
+            goblinEnemy.goblin
+          ) < 200
+        ) {
+          goblinEnemy.goblinChasePlayer(player1.player, 30);
+          if (
+            Phaser.Math.Distance.BetweenPoints(
+              player1.player,
+              goblinEnemy.goblin
+            ) < 102
+          ) {
+            if (goblinEnemy.alive) {
+              player1.attackDamageSystem(goblinEnemy);
+            }
+
+            if (
+              Phaser.Math.Distance.BetweenPoints(
+                player1.player,
+                goblinEnemy.goblin
+              ) < 70 &&
+              goblinEnemy.alive
+            ) {
+              player1.playerGetdamaged = true;
+            } else {
+              player1.playerGetdamaged = false;
+            }
+          }
+        } else {
+          goblinEnemy.goblinChasePlayer(player1.player, 0);
+        }
+
+        goblinEnemy.trapsDamage();
+      } else if (goblinEnemy.alive) {
+        goblinEnemy.goblin.body.setVelocity(0);
+        goblinEnemy.goblin.anims.play("goblin-idle", true);
+        // player1.timerGetdamged.paused = true;
+      }
+    }
+    //! FLYEYE----------CHASE
+    for (let flyEyeEnemy of flyEyeGroupEntity) {
+      flyEyeEnemy.flyEye.tint = 0xffffff;
+      if (flyEyeEnemy.alive) {
+        flyEyeEnemy.flyEye.setActive(true);
+        flyEyeEnemy.flyEye.setVisible(true);
+        // goblinEnemy.goblin.tint = 0x00ffff;
+      }
+      if (
+        Phaser.Math.Distance.BetweenPoints(player1.player, flyEyeEnemy.flyEye) <
+        300
+      ) {
+        if (
+          Phaser.Math.Distance.BetweenPoints(
+            player1.player,
+            flyEyeEnemy.flyEye
+          ) < 200
+        ) {
+          // flyEyeEnemy.moveSpriteOnCircle();
+          if (
+            Phaser.Math.Distance.BetweenPoints(
+              player1.player,
+              flyEyeEnemy.flyEye
+            ) < 102
+          ) {
+            if (flyEyeEnemy.alive) {
+              player1.attackDamageSystem(flyEyeEnemy);
+            }
+
+            if (
+              Phaser.Math.Distance.BetweenPoints(
+                player1.player,
+                flyEyeEnemy.flyEye
+              ) < 70 &&
+              flyEyeEnemy.alive
+            ) {
+              player1.playerGetdamaged = true;
+            } else {
+              player1.playerGetdamaged = false;
+            }
+          }
+        } else {
+          flyEyeEnemy.flyEyeChasePlayer(player1.player, 0);
+        }
+
+        flyEyeEnemy.trapsDamage();
+      } else if (flyEyeEnemy.flyEye.getHealth() > 0) {
+        flyEyeEnemy.flyEye.body.setVelocity(0);
+        flyEyeEnemy.flyEye.anims.play("flyEye-idleR", true);
+        // player1.timerGetdamged.paused = true;
+      }
+    }
+    //! SLIME----------CHASE
+    for (let slimeEnemy of slimeGroupEntity) {
+      slimeEnemy.slime.tint = 0xffffff;
+      if (slimeEnemy.alive) {
+        slimeEnemy.slime.setActive(true);
+        slimeEnemy.slime.setVisible(true);
+      }
+      // goblinEnemy.goblin.tint = 0x00ffff;
+
+      if (
+        Phaser.Math.Distance.BetweenPoints(player1.player, slimeEnemy.slime) <
+        300
+      ) {
+        if (
+          Phaser.Math.Distance.BetweenPoints(player1.player, slimeEnemy.slime) <
+          200
+        ) {
+          slimeEnemy.slimeChasePlayer(player1.player, 30);
+          if (
+            Phaser.Math.Distance.BetweenPoints(
+              player1.player,
+              slimeEnemy.slime
+            ) < 102
+          ) {
+            if (slimeEnemy.alive) {
+              player1.attackDamageSystem(slimeEnemy);
+            }
+
+            if (
+              Phaser.Math.Distance.BetweenPoints(
+                player1.player,
+                slimeEnemy.slime
+              ) < 70 &&
+              slimeEnemy.alive
+            ) {
+              player1.playerGetdamaged = true;
+            } else {
+              player1.playerGetdamaged = false;
+            }
+          }
+        } else {
+          slimeEnemy.slimeChasePlayer(player1.player, 0);
+        }
+
+        slimeEnemy.trapsDamage();
+      } else if (slimeEnemy.slime.getHealth() > 0) {
+        slimeEnemy.slime.body.setVelocity(0);
+        slimeEnemy.slime.anims.play("slime-idle", true);
+        // player1.timerGetdamged.paused = true;
+      }
+    }
+  } else {
+    //! GLOBIN ----------RENDER
+    for (let goblinEnemy of goblinGroupEntity) {
       if (
         this.cameras.main.worldView.contains(
           goblinEnemy.goblin.x,
           goblinEnemy.goblin.y
         )
       ) {
-        goblinEnemy.goblin.setActive(true);
-        goblinEnemy.goblin.setVisible(true);
-        // goblinEnemy.goblin.tint = 0x00ffff;
-
-        if (
-          Phaser.Math.Distance.BetweenPoints(
-            player1.player,
-            goblinEnemy.goblin
-          ) < 300
-        ) {
-          eCt += 1;
-          if (
-            Phaser.Math.Distance.BetweenPoints(
-              player1.player,
-              goblinEnemy.goblin
-            ) < 200
-          ) {
-            goblinEnemy.goblinChasePlayer(player1.player, 30);
-            if (
-              Phaser.Math.Distance.BetweenPoints(
-                player1.player,
-                goblinEnemy.goblin
-              ) < 102
-            ) {
-              player1.attackDamageSystem(goblinEnemy);
-              if (
-                Phaser.Math.Distance.BetweenPoints(
-                  player1.player,
-                  goblinEnemy.goblin
-                ) < 70 &&
-                goblinEnemy.alive
-              ) {
-                player1.playerGetdamaged = true;
-              } else {
-                player1.playerGetdamaged = false;
-              }
-            }
-          } else {
-            goblinEnemy.goblinChasePlayer(player1.player, 0);
-          }
-
-          goblinEnemy.trapsDamage();
-        } else if (goblinEnemy.goblin.getHealth() > 0) {
-          goblinEnemy.goblin.body.setVelocity(0);
-          goblinEnemy.goblin.anims.play("goblin-idle", true);
-          // player1.timerGetdamged.paused = true;
+        if (goblinEnemy.alive) {
+          goblinEnemy.goblin.setActive(true);
+          goblinEnemy.goblin.setVisible(true);
         }
       } else {
         goblinEnemy.goblin.setActive(false);
         goblinEnemy.goblin.setVisible(false);
-        // goblinEnemy.goblin.tint = 0xffffff;
-        // player1.timerGetdamged.paused = true;
       }
     }
-  }
-  //! FLYEYE
-  for (let flyEyeEnemy of flyEyeGroupEntity) {
-    if (flyEyeEnemy.alive) {
-      flyEyeEnemy.flyEye.tint = 0xffffff;
+    //! FLYEYE----------RENDER
+    for (let flyEyeEnemy of flyEyeGroupEntity) {
       if (
         this.cameras.main.worldView.contains(
           flyEyeEnemy.flyEye.x,
           flyEyeEnemy.flyEye.y
         )
       ) {
-        flyEyeEnemy.flyEye.setActive(true);
-        flyEyeEnemy.flyEye.setVisible(true);
-        // goblinEnemy.goblin.tint = 0x00ffff;
-
-        if (
-          Phaser.Math.Distance.BetweenPoints(
-            player1.player,
-            flyEyeEnemy.flyEye
-          ) < 300
-        ) {
-          eCt += 1;
-          if (
-            Phaser.Math.Distance.BetweenPoints(
-              player1.player,
-              flyEyeEnemy.flyEye
-            ) < 200
-          ) {
-            flyEyeEnemy.moveSpriteOnCircle();
-            if (
-              Phaser.Math.Distance.BetweenPoints(
-                player1.player,
-                flyEyeEnemy.flyEye
-              ) < 102
-            ) {
-              player1.attackDamageSystem(flyEyeEnemy);
-              if (
-                Phaser.Math.Distance.BetweenPoints(
-                  player1.player,
-                  flyEyeEnemy.flyEye
-                ) < 70 &&
-                flyEyeEnemy.alive
-              ) {
-                player1.playerGetdamaged = true;
-              } else {
-                player1.playerGetdamaged = false;
-              }
-            }
-          } else {
-            flyEyeEnemy.flyEyeChasePlayer(player1.player, 0);
-          }
-
-          flyEyeEnemy.trapsDamage();
-        } else if (flyEyeEnemy.flyEye.getHealth() > 0) {
-          flyEyeEnemy.flyEye.body.setVelocity(0);
-          flyEyeEnemy.flyEye.anims.play("flyEye-idleR", true);
-          // player1.timerGetdamged.paused = true;
+        if (flyEyeEnemy.alive) {
+          flyEyeEnemy.flyEye.setActive(true);
+          flyEyeEnemy.flyEye.setVisible(true);
         }
       } else {
         flyEyeEnemy.flyEye.setActive(false);
         flyEyeEnemy.flyEye.setVisible(false);
-        // goblinEnemy.goblin.tint = 0xffffff;
-        // player1.timerGetdamged.paused = true;
       }
     }
-  }
-  //! SLIME
-  for (let slimeEnemy of slimeGroupEntity) {
-    if (slimeEnemy.alive) {
-      slimeEnemy.slime.tint = 0xffffff;
+    //! SLIME----------RENDER
+    for (let slimeEnemy of slimeGroupEntity) {
       if (
         this.cameras.main.worldView.contains(
           slimeEnemy.slime.x,
           slimeEnemy.slime.y
         )
       ) {
-        slimeEnemy.slime.setActive(true);
-        slimeEnemy.slime.setVisible(true);
-        // goblinEnemy.goblin.tint = 0x00ffff;
-
-        if (
-          Phaser.Math.Distance.BetweenPoints(player1.player, slimeEnemy.slime) <
-          300
-        ) {
-          eCt += 1;
-          if (
-            Phaser.Math.Distance.BetweenPoints(
-              player1.player,
-              slimeEnemy.slime
-            ) < 200
-          ) {
-            slimeEnemy.slimeChasePlayer(player1.player, 30);
-            if (
-              Phaser.Math.Distance.BetweenPoints(
-                player1.player,
-                slimeEnemy.slime
-              ) < 102
-            ) {
-              player1.attackDamageSystem(slimeEnemy);
-              if (
-                Phaser.Math.Distance.BetweenPoints(
-                  player1.player,
-                  slimeEnemy.slime
-                ) < 70 &&
-                slimeEnemy.alive
-              ) {
-                player1.playerGetdamaged = true;
-              } else {
-                player1.playerGetdamaged = false;
-              }
-            }
-          } else {
-            slimeEnemy.slimeChasePlayer(player1.player, 0);
-          }
-
-          slimeEnemy.trapsDamage();
-        } else if (slimeEnemy.slime.getHealth() > 0) {
-          slimeEnemy.slime.body.setVelocity(0);
-          slimeEnemy.slime.anims.play("slime-idle", true);
-          // player1.timerGetdamged.paused = true;
+        if (slimeEnemy.alive) {
+          slimeEnemy.slime.setActive(true);
+          slimeEnemy.slime.setVisible(true);
         }
       } else {
         slimeEnemy.slime.setActive(false);
         slimeEnemy.slime.setVisible(false);
-        // goblinEnemy.goblin.tint = 0xffffff;
-        // player1.timerGetdamged.paused = true;
       }
     }
   }

@@ -1,4 +1,4 @@
-class mapObj {
+class MapObj {
   constructor(game, player) {
     this.game = game;
 
@@ -183,7 +183,7 @@ class mapObj {
   }
 }
 
-export { mapObj };
+export { MapObj };
 
 // map1.background.getTileAt(x, y);
 // map1.checkForPlayer.getTileAt(x, y);
