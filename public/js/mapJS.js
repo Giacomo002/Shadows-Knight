@@ -1,9 +1,11 @@
 class MapObj {
-  constructor(game, player) {
+  constructor(game, sounds) {
     this.game = game;
 
     this.map;
-    this.player = player;
+    this.player;
+
+    this.sounds = sounds;
 
     this.tileset1;
     this.tileset2;
@@ -19,7 +21,10 @@ class MapObj {
     this.stairs;
     this.walls;
     this.trappoleTerreno;
-    this.porteChiuse;
+    this.openLevel1;
+    this.openLevel2;
+    this.porteLevel1;
+    this.porteLevel2;
     this.decorazioniTerreno;
     this.decorazioniMuro;
     this.decorazioniMuro;
@@ -31,9 +36,18 @@ class MapObj {
       this.map = this.game.make.tilemap({ key: "map" });
 
       this.tileset1 = this.map.addTilesetImage("fullTilemap", "tiles");
-      this.tileset2 = this.map.addTilesetImage("fullSpritesheet", "tilesSecond");
-      this.tileset3 = this.map.addTilesetImage("background2", "tiles-background");
-      this.tileset4 = this.map.addTilesetImage("background", "tiles-background1");
+      this.tileset2 = this.map.addTilesetImage(
+        "fullSpritesheet",
+        "tilesSecond"
+      );
+      this.tileset3 = this.map.addTilesetImage(
+        "background2",
+        "tiles-background"
+      );
+      this.tileset4 = this.map.addTilesetImage(
+        "background",
+        "tiles-background1"
+      );
       this.tileset5 = this.map.addTilesetImage(
         "attackPlayerTiles",
         "attackPlayerTiles"
@@ -53,7 +67,20 @@ class MapObj {
         "trappoleTerreno",
         this.tileset2
       );
-      this.porteChiuse = this.map.createLayer("porteChiuse", this.tileset2, 0, 0);
+      this.openLevel1 = this.map.createLayer("openLevel1", this.tileset2, 0, 0);
+      this.openLevel2 = this.map.createLayer("openLevel2", this.tileset2, 0, 0);
+      this.porteLevel1 = this.map.createLayer(
+        "porteLevel1",
+        this.tileset2,
+        0,
+        0
+      );
+      this.porteLevel2 = this.map.createLayer(
+        "porteLevel2",
+        this.tileset2,
+        0,
+        0
+      );
 
       this.decorazioniTerreno = this.map.createLayer(
         "decorazioniTerreno",
@@ -75,7 +102,8 @@ class MapObj {
       this.structures.setDepth(1);
 
       this.background.setCollisionByProperty({ collides: true });
-      this.porteChiuse.setCollisionByProperty({ collides: true });
+      this.porteLevel1.setCollisionByProperty({ collides: true });
+      this.porteLevel2.setCollisionByProperty({ collides: true });
       this.decorazioniTerreno.setCollisionByProperty({ collides: true });
       this.walls.setCollisionByProperty({ collides: true });
     };
@@ -103,39 +131,43 @@ class MapObj {
     };
 
     this.trapsDamage = () => {
-
       var tileTrappole = this.trappoleTerreno.getTileAtWorldXY(
         this.player.player.x,
         this.player.player.y
       );
 
       if (tileTrappole) {
-        if (tileTrappole.index == 125 ||
+        if (
+          tileTrappole.index == 125 ||
           tileTrappole.index == 126 ||
           tileTrappole.index == 127 ||
-          tileTrappole.index == 128) {
-          
+          tileTrappole.index == 128
+        ) {
           this.player.player.tint = 0xff3f00;
+          setTimeout(() => {
+            this.player.player.tint = 0xffffff;
+          }, 160);
+          this.sounds.playHit();
           this.player.player.damage(0.5);
-          
         }
       }
     };
 
     this.dynamicWallHitbox = () => {
-
       var tileMuro = this.walls.getTileAtWorldXY(
         this.player.player.x,
         this.player.player.y
       );
 
       if (tileMuro) {
-        if (tileMuro.index == 305 ||
+        if (
+          tileMuro.index == 305 ||
           tileMuro.index == 304 ||
           tileMuro.index == 295 ||
           tileMuro.index == 296 ||
           tileMuro.index == 306 ||
-          tileMuro.index == 297) {
+          tileMuro.index == 297
+        ) {
           this.player.player.setSize(40, 96);
           this.player.player.setOffset(35, 0);
           this.player.movement(0);

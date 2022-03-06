@@ -1,5 +1,5 @@
 class SlimeObj {
-  constructor(position, game, map, player) {
+  constructor(position, game, map, player, sounds) {
     this.game = game;
     this.position = position;
     this.map = map;
@@ -7,15 +7,19 @@ class SlimeObj {
     this.slime;
     this.player = player;
 
+    this.sounds = sounds;
+
     this.slimeSpawnPoint;
-    this.velocityslime = 80;
+    this.velocityslime = 60;
     this.lifeSlime = 100;
     this.damageToDie = 3;
+    this.canIfire = false;
 
-    this.isChasing = false;
+    this.isChasing = true;
     this.isAttaccking = false;
     this.targetEscapeAg;
     this.targetChased = false;
+    this.projectiles;
 
     this.hitSlime;
     this.deadslime;
@@ -102,7 +106,6 @@ class SlimeObj {
 
       this.deadslime.on("animationcomplete", () => {
         this.deadslime.visible = false;
-
         // this.slime.destroy();
       });
 
@@ -112,6 +115,13 @@ class SlimeObj {
       PhaserHealth.AddTo(this.slime, this.lifeSlime, 0, 100);
 
       this.slime.on("die", this.timerSetToTrue);
+
+      this.timerSlimeAttack = this.game.time.addEvent({
+        delay: 2000,
+        callback: this.slimeAttack,
+        callbackScope: this,
+        loop: true,
+      });
 
       this.game.physics.add.collider(this.slime, this.map.background);
       this.game.physics.add.collider(this.slime, this.map.decorazioniTerreno);
@@ -179,6 +189,46 @@ class SlimeObj {
       }
     };
 
+    this.killProjectiles = (projectiles, background) => {
+      projectiles.destroy();
+    };
+
+    this.slimeAttack = () => {
+      if (this.canIfire) {
+        console.log(
+          "fire! " +
+            "range: " +
+            Phaser.Math.Distance.BetweenPoints(this.player.player, this.slime)
+        );
+        this.projectiles = this.game.physics.add.sprite(
+          this.slime.x,
+          this.slime.y,
+          "slime-pr"
+        );
+
+        this.game.physics.moveToObject(
+          this.projectiles,
+          this.player.player,
+          200
+        );
+        this.sounds.playprojectiles();
+        this.game.physics.add.collider(
+          this.projectiles,
+          this.map.background,
+          this.killProjectiles,
+          null,
+          this
+        );
+        this.game.physics.add.collider(
+          this.projectiles,
+          this.player.player,
+          this.player.slimeProjectilesMakedamage,
+          null,
+          this
+        );
+      }
+    };
+
     this.timerSetToTrue = () => {
       this.player.playerGetdamaged = false;
       this.deadslime.x = this.slime.x;
@@ -186,10 +236,11 @@ class SlimeObj {
       this.dieslime();
     };
     this.dieslime = () => {
-    //   this.slime.setActive(false);
-    //   this.slime.setVisible(false);
-	  this.slime.alpha = 0;
+      //   this.slime.setActive(false);
+      //   this.slime.setVisible(false);
+      this.slime.alpha = 0;
       this.deadslime.visible = true;
+      this.canIfire = false;
 
       this.deadslime.anims.play("dead-slime");
       this.alive = false;
@@ -215,6 +266,7 @@ class SlimeObj {
           this.hitSlime.y = this.slime.y;
           this.hitSlime.anims.play("hit-slime");
           this.slime.tint = 0xff3f00;
+          this.sounds.playHit();
         }
       }
     };
@@ -226,6 +278,7 @@ class SlimeObj {
       this.hitSlime.y = this.slime.y;
       this.hitSlime.anims.play("hit-slime");
       this.slime.tint = 0xff3f00;
+      this.sounds.playHit();
     };
 
     this.changeDirection = () => {

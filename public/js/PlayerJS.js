@@ -1,8 +1,10 @@
 class PlayerObj {
-  constructor(cursors, game, map) {
+  constructor(cursors, game, map, sounds, gameScene) {
     this.game = game;
     this.cursors = cursors;
     this.map = map;
+
+    this.sounds = sounds;
 
     this.player;
     this.sword;
@@ -14,17 +16,21 @@ class PlayerObj {
     this.swordSlash;
     this.oldSwordposition;
     this.swordRotValue;
+    this.swordAttackRange = 110;
 
     this.playerSpawnPoint;
     this.velocityPlayer = 360;
     this.playerGetdamaged = false;
     this.bar;
 
+    this.level1ColliderPlayer;
+    this.level2ColliderPlayer;
+
     this.playerRay;
+    this.textKey;
 
-
-    this.r1 = this.game.add.line(200, 200, 0, 0, 300, 0, 0x6666ff);
-    this.r2 = this.game.add.line(200, 200, 0, 0, 300, 0, 0xff3f00);
+    this.flyEyeArea;
+    this.flyEyeAreaRadius = 190;
 
     this.makeBar = (color) => {
       //draw the bar
@@ -38,10 +44,21 @@ class PlayerObj {
         window.innerHeight / 2,
         "mask"
       );
-      
+
+      this.keyUi = this.game.physics.add.sprite(
+        1250,
+        65,
+        "key"
+      );
+
+
+      this.textKey = this.game.add.text(1170, 35, "0", {
+        font: "60px VT323",
+      });
+
       this.barBackground = this.game.add.graphics();
       this.bar = this.game.add.graphics();
-      this.barUi = this.game.add.image(250, 70, "healthBarUi");
+      this.barUi = this.game.add.image(650, 70, "healthBarUi");
 
       //color the bar
       this.barBackground.fillStyle(0x242a36, 1);
@@ -52,9 +69,9 @@ class PlayerObj {
       this.bar.fillRect(0, 0, 290, 50);
 
       //position the bar
-      this.bar.x = 145;
+      this.bar.x = 545;
       this.bar.y = 40;
-      this.barBackground.x = 145;
+      this.barBackground.x = 545;
       this.barBackground.y = 40;
 
       this.maskRed.setScrollFactor(0, 0);
@@ -62,6 +79,9 @@ class PlayerObj {
       this.barBackground.setScrollFactor(0, 0);
       this.bar.setScrollFactor(0, 0);
       this.barUi.setScrollFactor(0, 0);
+      this.keyUi.setScrollFactor(0, 0);
+      this.textKey.setScrollFactor(0, 0);
+      
 
       this.maskRed.setDepth(1);
       this.maskRed.setTintFill(0x990000);
@@ -69,16 +89,18 @@ class PlayerObj {
       this.barBackground.setDepth(1);
       this.bar.setDepth(1);
       this.barUi.setDepth(1);
+      this.keyUi.setDepth(1);
+      this.textKey.setDepth(1);
+      
     };
 
     this.colorDarknes = (col, amt) => {
-      
-        var num = parseInt(col, 16);
-        var r = (num >> 16) + amt;
-        var b = ((num >> 8) & 0x00ff) + amt;
-        var g = (num & 0x0000ff) + amt;
-        var newColor = g | (b << 8) | (r << 16);
-        return newColor.toString(16);
+      var num = parseInt(col, 16);
+      var r = (num >> 16) + amt;
+      var b = ((num >> 8) & 0x00ff) + amt;
+      var g = (num & 0x0000ff) + amt;
+      var newColor = g | (b << 8) | (r << 16);
+      return newColor.toString(16);
     };
 
     this.healthBarUpdate = () => {
@@ -88,10 +110,13 @@ class PlayerObj {
       this.maskRed.alpha =
         1 - this.player.getHealth() / this.player.getMaxHealth();
       this.mask.alpha = this.player.getHealth() / this.player.getMaxHealth();
-      
-      //position the bar
-      // this.bar.x = this.player.x;
-      // this.bar.y = this.player.y;
+
+      this.maskRed.setDepth(1);
+      this.maskRed.setTintFill(0x990000);
+      this.mask.setDepth(1);
+      this.barBackground.setDepth(1);
+      this.bar.setDepth(1);
+      this.barUi.setDepth(1);
     };
 
     this.playerInitialize = (enemyGoblinEntity) => {
@@ -167,20 +192,18 @@ class PlayerObj {
       });
 
       this.swordSlash.on("animationcomplete", () => {
-        
         this.swordSlash.visible = false;
       });
 
       // Add component to *one* game object and assign health=1, minHealth=0, maxHealth=2
       PhaserHealth.AddTo(this.player, 100, 0, 100);
 
-      this.timerGetdamged = this.game.time.addEvent({
+      this.timerGetdamagedGoblin = this.game.time.addEvent({
         delay: 1500,
         callback: this.goblinMakedamage,
         callbackScope: this,
         loop: true,
       });
-
 
       this.makeBar(0xac3232);
       this.healthBarUpdate();
@@ -189,18 +212,35 @@ class PlayerObj {
       this.player.anims.play("knight-idle");
 
       // Hide and deactivate sprite when health decreases below 0
-      this.player.on("die", function (spr) {
-        this.game.pause = true;
-        spr.setActive(false).setVisible(false);
-      });
+      this.player.on("die", this.diePlayer);
+
+      this.flyEyeArea = new Phaser.Geom.Circle(
+        this.player.x,
+        this.player.y,
+        this.flyEyeAreaRadius
+      );
 
       this.game.physics.add.collider(this.player, this.map.background);
       this.game.physics.add.collider(this.player, this.map.decorazioniTerreno);
+      this.level1ColliderPlayer = this.game.physics.add.collider(
+        this.player,
+        this.map.porteLevel1
+      );
+      this.level2ColliderPlayer = this.game.physics.add.collider(
+        this.player,
+        this.map.porteLevel2
+      );
       this.game.physics.collide(this.player, this.map.walls);
       // this.game.physics.add.overlap(this.swordSlash, this.swordTest, this.test);
       this.game.physics.add.overlap(this.player, this.map.ground);
       this.game.physics.add.collider(this.player, enemyGoblinEntity);
     };
+
+    this.diePlayer = () => {
+      this.sounds.stopBase();
+      this.sounds.playLose();
+      gameScene.scene.pause("default");
+    }
 
     this.getRotationBetween = (objTarget, mouseTarget) => {
       if (mouseTarget) {
@@ -306,13 +346,9 @@ class PlayerObj {
         }
 
         if (this.sword.rotation < -1.69 || this.sword.rotation > 1.69) {
-          // this.sword.tint = 0xffff00;
           this.player.scaleX = -1;
-          // this.swordSlash.setOrigin(-0.6, 0.7);
         } else if (this.sword.rotation > -1.69 || this.sword.rotation < 1.69) {
-          // this.sword.tint = 0xff00ff;
           this.player.scaleX = 1;
-          // this.swordSlash.setOrigin(-0.6, 0.3);
         }
 
         this.oldSwordposition = this.sword.rotation;
@@ -340,37 +376,46 @@ class PlayerObj {
       );
     };
 
-
     this.goblinMakedamage = () => {
       if (this.playerGetdamaged) {
         this.player.damage(15);
-        if (this.player.tint == 0xffffff) {
-          this.player.tint = 0xff3f00;
-        } else {
+        this.player.tint = 0xff3f00;
+        this.sounds.playHit();
+        setTimeout(() => {
           this.player.tint = 0xffffff;
-        }
+        }, 160);
       }
     };
     this.slimeMakedamage = () => {
       if (this.playerGetdamaged) {
-        this.player.damage(15);
-        if (this.player.tint == 0xffffff) {
-          this.player.tint = 0xff3f00;
-        } else {
+        this.player.damage(10);
+        this.player.tint = 0xff3f00;
+        this.sounds.playHit();
+        setTimeout(() => {
           this.player.tint = 0xffffff;
-        }
+        }, 160);
       }
+    };
+    this.slimeProjectilesMakedamage = (projectiles, player) => {
+      this.player.damage(20);
+      projectiles.destroy();
+      this.player.tint = 0xff3f00;
+      this.sounds.playHit();
+      setTimeout(() => {
+        this.player.tint = 0xffffff;
+      }, 160);
     };
     this.flyEyeMakedamage = () => {
       if (this.playerGetdamaged) {
-        this.player.damage(15);
-        if (this.player.tint == 0xffffff) {
-          this.player.tint = 0xff3f00;
-        } else {
+        this.player.damage(8);
+        this.player.tint = 0xff3f00;
+        this.sounds.playHit();
+        setTimeout(() => {
           this.player.tint = 0xffffff;
-        }
+        }, 160);
       }
     };
+
     this.attackDamageSystem = (enemyEntity) => {
       this.enemyAngle = this.getRotationBetween(enemyEntity.getBody(), false);
       this.cursorsAngle = this.getRotationBetween(
@@ -381,18 +426,6 @@ class PlayerObj {
         this.getRotationBetween(this.game.input.mousePointer, true) + 0.6;
       this.limitDamage2 =
         this.getRotationBetween(this.game.input.mousePointer, true) - 0.6;
-
-      this.r1.setDepth(1);
-      this.r2.setDepth(1);
-
-      this.r1.x = this.player.x;
-      this.r1.y = this.player.y;
-
-      this.r2.x = this.player.x;
-      this.r2.y = this.player.y;
-
-      this.r1.rotation = this.limitDamage1;
-      this.r2.rotation = this.limitDamage2;
 
       if (
         (this.enemyAngle > this.cursorsAngle &&
@@ -416,6 +449,7 @@ class PlayerObj {
       });
       this.swordTween.restart();
       this.swordSlash.visible = true;
+      this.sounds.playSword();
       this.swordSlash.anims.play("s-k-slash");
     };
 

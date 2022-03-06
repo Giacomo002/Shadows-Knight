@@ -1,5 +1,5 @@
 class GoblinObj {
-  constructor(position, game, map, player) {
+  constructor(position, game, map, player, sounds) {
     this.game = game;
     this.position = position;
     this.map = map;
@@ -7,12 +7,14 @@ class GoblinObj {
     this.goblin;
     this.player = player;
 
+    this.sounds = sounds;
+
     this.goblinSpawnPoint;
     this.velocityGoblin = 90;
     this.lifeGoblin = 100;
     this.damageToDie = 5;
 
-    this.isChasing = false;
+    this.isChasing = true;
     this.isAttaccking = false;
     this.targetEscapeAg;
     this.targetChased = false;
@@ -129,8 +131,6 @@ class GoblinObj {
       this.game.physics.collide(this.goblin, this.map.walls);
     };
 
-    
-
     this.getRandomUniformMovAroundPlayer = (objArea) => {
       this.targetEscapeAg = new Phaser.Math.Vector2();
       objArea.getRandomPoint(this.targetEscapeAg);
@@ -232,6 +232,7 @@ class GoblinObj {
           this.hitGoblin.y = this.goblin.y;
           this.hitGoblin.anims.play("hit-goblin");
           this.goblin.tint = 0xff3f00;
+          this.sounds.playHit();
         }
       }
     };
@@ -243,6 +244,7 @@ class GoblinObj {
       this.hitGoblin.y = this.goblin.y;
       this.hitGoblin.anims.play("hit-goblin");
       this.goblin.tint = 0xff3f00;
+      this.sounds.playHit();
     };
 
     this.changeDirection = () => {

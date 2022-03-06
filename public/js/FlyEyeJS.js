@@ -1,5 +1,5 @@
 class FlyEyeObj {
-  constructor(position, game, map, player) {
+  constructor(position, game, map, player, sounds) {
     this.game = game;
     this.position = position;
     this.map = map;
@@ -7,15 +7,20 @@ class FlyEyeObj {
     this.flyEye;
     this.player = player;
 
+    this.sounds = sounds;
+
     this.flyEyeSpawnPoint;
-    this.velocityFlyEye = 120;
+    this.velocityFlyEye = 100;
     this.lifeFlyEye = 100;
     this.damageToDie = 7;
     this.rangeChasePlayer = 300;
-    this.radiusPath = 200;
+    // this.radiusPath = Phaser.Math.Between(60, 200);
+    this.radiusPath = this.player.flyEyeAreaRadius;
     this.velocityRadSecPath = 0.001;
+    this.pathCenterAttack = new Phaser.Math.Vector2();
+    this.setNewDefault = true;
 
-    this.isChasing = false;
+    this.isChasing = true;
     this.isAttaccking = false;
     this.targetEscapeAg;
     this.targetChased = false;
@@ -70,6 +75,7 @@ class FlyEyeObj {
       this.hitFlyEye.visible = false;
       this.deadflyEye.visible = false;
 
+      // this.flyEye.setDepth(1);
       this.hitFlyEye.setDepth(1);
       this.deadflyEye.setDepth(1);
 
@@ -110,8 +116,17 @@ class FlyEyeObj {
 
       this.flyEye.on("die", this.timerSetToTrue);
 
+      this.pathCenterAttack = this.player.flyEyeArea.getRandomPoint();
+
+      this.timerFlyEyeChangePos = this.game.time.addEvent({
+        delay: 500,
+        callback: this.flyEyeChangePosition,
+        callbackScope: this,
+        loop: true,
+      });
+
       this.game.physics.add.collider(this.flyEye, this.map.background);
-      this.game.physics.add.collider(this.flyEye, this.map.decorazioniTerreno);
+      // this.game.physics.add.collider(this.flyEye, this.map.decorazioniTerreno);
       this.game.physics.collide(this.flyEye, this.map.walls);
     };
 
@@ -122,14 +137,41 @@ class FlyEyeObj {
       return this.targetEscapeAg;
     };
 
+    this.flyEyeChangePosition = () => {
+      // this.pathCenterAttack.x = this.player.player.x;
+      // this.pathCenterAttack.y = this.player.player.y;
+      // this.radiusPath = Phaser.Math.Between(180, 185);
+      this.pathCenterAttack = this.player.flyEyeArea.getRandomPoint();
+      console.log(this.player.flyEyeArea.getRandomPoint());
+    };
+
     this.moveSpriteOnCircle = () => {
-      Phaser.Math.RotateAroundDistance(
-        this.flyEye,
-        this.player.player.x,
-        this.player.player.y,
-        this.velocityRadSecPath,
-        this.radiusPath
+      var graphics = this.game.add.graphics({
+        lineStyle: { width: 2, color: 0x00ff00 },
+        fillStyle: { color: 0xff0000 },
+      });
+
+      graphics.fillRect(
+        this.pathCenterAttack.x - 4,
+        this.pathCenterAttack.y - 4,
+        8,
+        8
       );
+      graphics.clear();
+
+      if (this.isChasing && this.flyEye.getHealth() > 0) {
+        this.game.physics.moveToObject(
+          this.flyEye,
+          this.pathCenterAttack,
+          this.velocityFlyEye
+        );
+
+        if (this.flyEye.body.velocity.x > 0) {
+          this.flyEye.anims.play("flyEye-idleR", true);
+        } else {
+          this.flyEye.anims.play("flyEye-idleL", true);
+        }
+      }
     };
 
     this.flyEyeChasePlayer = (player, speedUp) => {
@@ -177,9 +219,9 @@ class FlyEyeObj {
     };
 
     this.dieflyEye = () => {
-    //   this.flyEye.setActive(false);
-    //   this.flyEye.setVisible(false);
-	  this.flyEye.alpha = 0;
+      //   this.flyEye.setActive(false);
+      //   this.flyEye.setVisible(false);
+      this.flyEye.alpha = 0;
       this.deadflyEye.visible = true;
       this.deadflyEye.anims.play("dead-flyEye");
       this.alive = false;
@@ -205,6 +247,7 @@ class FlyEyeObj {
           this.hitFlyEye.y = this.flyEye.y;
           this.hitFlyEye.anims.play("hit-flyEye");
           this.flyEye.tint = 0xff3f00;
+          this.sounds.playHit();
         }
       }
     };
@@ -216,6 +259,7 @@ class FlyEyeObj {
       this.hitFlyEye.y = this.flyEye.y;
       this.hitFlyEye.anims.play("hit-goblin");
       this.flyEye.tint = 0xff3f00;
+      this.sounds.playHit();
     };
 
     this.changeDirection = () => {
