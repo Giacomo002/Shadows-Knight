@@ -30,7 +30,7 @@ class GoblinObj {
         "goblin-i"
       );
 
-      // this.goblin.setCollideWorldBounds(true);
+      
       this.goblin.setSize(40, 45);
       this.goblin.setOffset(35, 40);
 
@@ -116,7 +116,7 @@ class GoblinObj {
       this.deadGoblin.on("animationcomplete", () => {
         this.deadGoblin.visible = false;
 
-        // this.goblin.destroy();
+     
       });
 
       this.goblin.body.setVelocity(0);
@@ -131,15 +131,9 @@ class GoblinObj {
       this.game.physics.collide(this.goblin, this.map.walls);
     };
 
-    this.getRandomUniformMovAroundPlayer = (objArea) => {
-      this.targetEscapeAg = new Phaser.Math.Vector2();
-      objArea.getRandomPoint(this.targetEscapeAg);
-      // this.targetEscapeAg.floor();
-      return this.targetEscapeAg;
-    };
 
     this.goblinChasePlayer = (player, speedUp) => {
-      // this.goblin.tint = 0xff3f00;
+     
       this.swordGoblin.x = this.goblin.x;
       this.swordGoblin.y = this.goblin.y;
 
@@ -166,7 +160,7 @@ class GoblinObj {
           if (this.goblin.y < player.y) {
             //down
             this.goblin.setVelocity(0, this.velocityGoblin + speedUp);
-            // this.goblin.anims.play("goblin-runR", true);
+            
             if (this.goblin.x < player.x) {
               //right
               this.goblin.anims.play("goblin-runR", true);
@@ -179,7 +173,7 @@ class GoblinObj {
           } else {
             //up
             this.goblin.setVelocity(0, -(this.velocityGoblin + speedUp));
-            // this.goblin.anims.play("goblin-runR", true);
+         
             if (this.goblin.x < player.x) {
               //right
               this.goblin.anims.play("goblin-runR", true);
@@ -225,7 +219,7 @@ class GoblinObj {
           tileTrappole.index == 127 ||
           tileTrappole.index == 128
         ) {
-          // this.player.player.tint = 0xff00ff;
+          
           this.goblin.damage(2);
           this.hitGoblin.visible = true;
           this.hitGoblin.x = this.goblin.x;

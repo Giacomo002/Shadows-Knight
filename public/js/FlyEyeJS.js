@@ -14,7 +14,6 @@ class FlyEyeObj {
     this.lifeFlyEye = 100;
     this.damageToDie = 7;
     this.rangeChasePlayer = 300;
-    // this.radiusPath = Phaser.Math.Between(60, 200);
     this.radiusPath = this.player.flyEyeAreaRadius;
     this.velocityRadSecPath = 0.001;
     this.pathCenterAttack = new Phaser.Math.Vector2();
@@ -36,7 +35,6 @@ class FlyEyeObj {
         "flyEye-i"
       );
 
-      // this.flyEye.setCollideWorldBounds(true);
       this.flyEye.setSize(40, 45);
       this.flyEye.setOffset(35, 40);
 
@@ -75,7 +73,6 @@ class FlyEyeObj {
       this.hitFlyEye.visible = false;
       this.deadflyEye.visible = false;
 
-      // this.flyEye.setDepth(1);
       this.hitFlyEye.setDepth(1);
       this.deadflyEye.setDepth(1);
 
@@ -105,8 +102,6 @@ class FlyEyeObj {
 
       this.deadflyEye.on("animationcomplete", () => {
         this.deadflyEye.visible = false;
-
-        // this.flyEye.destroy();
       });
 
       this.flyEye.body.setVelocity(0);
@@ -126,39 +121,14 @@ class FlyEyeObj {
       });
 
       this.game.physics.add.collider(this.flyEye, this.map.background);
-      // this.game.physics.add.collider(this.flyEye, this.map.decorazioniTerreno);
       this.game.physics.collide(this.flyEye, this.map.walls);
     };
 
-    this.getRandomUniformMovAroundPlayer = (objArea) => {
-      this.targetEscapeAg = new Phaser.Math.Vector2();
-      objArea.getRandomPoint(this.targetEscapeAg);
-      // this.targetEscapeAg.floor();
-      return this.targetEscapeAg;
-    };
-
     this.flyEyeChangePosition = () => {
-      // this.pathCenterAttack.x = this.player.player.x;
-      // this.pathCenterAttack.y = this.player.player.y;
-      // this.radiusPath = Phaser.Math.Between(180, 185);
       this.pathCenterAttack = this.player.flyEyeArea.getRandomPoint();
-      console.log(this.player.flyEyeArea.getRandomPoint());
     };
 
     this.moveSpriteOnCircle = () => {
-      var graphics = this.game.add.graphics({
-        lineStyle: { width: 2, color: 0x00ff00 },
-        fillStyle: { color: 0xff0000 },
-      });
-
-      graphics.fillRect(
-        this.pathCenterAttack.x - 4,
-        this.pathCenterAttack.y - 4,
-        8,
-        8
-      );
-      graphics.clear();
-
       if (this.isChasing && this.flyEye.getHealth() > 0) {
         this.game.physics.moveToObject(
           this.flyEye,
@@ -175,32 +145,23 @@ class FlyEyeObj {
     };
 
     this.flyEyeChasePlayer = (player, speedUp) => {
-      // this.flyEye.tint = 0xff3f00;
-
       if (this.isChasing && this.flyEye.getHealth() > 0) {
         const dx = Math.abs(this.flyEye.x - player.x);
         const dy = Math.abs(this.flyEye.y - player.y);
 
-        //radius
         if (dx > dy) {
           this.flyEye.body.setVelocity(0);
-          //close gap x
           if (this.flyEye.x < player.x) {
-            //right
             this.flyEye.setVelocity(this.velocityFlyEye + speedUp, 0);
             this.flyEye.anims.play("flyEye-idleR", true);
           } else {
-            //left
             this.flyEye.setVelocity(-(this.velocityFlyEye + speedUp), 0);
             this.flyEye.anims.play("flyEye-idleL", true);
           }
         } else {
-          //close gap y
           if (this.flyEye.y < player.y) {
-            //down
             this.flyEye.setVelocity(0, this.velocityFlyEye + speedUp);
           } else {
-            //up
             this.flyEye.setVelocity(0, -(this.velocityFlyEye + speedUp));
           }
         }
@@ -219,8 +180,6 @@ class FlyEyeObj {
     };
 
     this.dieflyEye = () => {
-      //   this.flyEye.setActive(false);
-      //   this.flyEye.setVisible(false);
       this.flyEye.alpha = 0;
       this.deadflyEye.visible = true;
       this.deadflyEye.anims.play("dead-flyEye");
@@ -240,7 +199,6 @@ class FlyEyeObj {
           tileTrappole.index == 127 ||
           tileTrappole.index == 128
         ) {
-          // this.player.player.tint = 0xff00ff;
           this.flyEye.damage(2);
           this.hitFlyEye.visible = true;
           this.hitFlyEye.x = this.flyEye.x;

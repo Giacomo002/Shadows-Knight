@@ -25,7 +25,6 @@ class RayCastPlayer {
     this.intersections;
 
     this.rayInitialize = () => {
-      // Create ray
       this.ray = this.raycaster.createRay({
         origin: {
           x: this.player.x,
@@ -35,7 +34,7 @@ class RayCastPlayer {
       });
 
       this.raycaster.mapGameObjects(this.collisionMapLayer, false, {
-        collisionTiles: [326], //array of tile types which collide with rays
+        collisionTiles: [326],
       });
 
       this.raycaster.mapGameObjects(

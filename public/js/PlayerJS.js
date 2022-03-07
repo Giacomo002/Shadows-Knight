@@ -45,33 +45,59 @@ class PlayerObj {
         "mask"
       );
 
-      this.keyUi = this.game.physics.add.sprite(
-        1250,
-        65,
-        "key"
-      );
-
-
-      this.textKey = this.game.add.text(1170, 35, "0", {
-        font: "60px VT323",
-      });
-
       this.barBackground = this.game.add.graphics();
       this.bar = this.game.add.graphics();
-      this.barUi = this.game.add.image(650, 70, "healthBarUi");
+      this.barUi = this.game.add.image(
+        window.innerWidth / 2,
+        70,
+        "healthBarUi"
+      );
 
+      this.scrolOpen = this.game.add.image(
+        260,
+        window.innerHeight - 230,
+        "scrolOpen"
+      );
+
+      this.textKey = this.game.add.text(1135, 55, "0", {
+        fontFamily: "AppleFont",
+        fontSize: "40px",
+      });
+
+      let textParagraph = [
+        "Ciao!",
+        " ",
+        "Cerca le chiavi",
+        "per avanzare di",
+        "livello.",
+        " ",
+        "---------------",
+        "P.S.: ",
+        " ",
+        "Uccidili tutti!",
+      ];
+
+      this.textScrol = this.game.add.text(
+        90,
+        window.innerHeight - 370,
+        textParagraph,
+        {
+          fontFamily: "AppleFont",
+          fontSize: "23px",
+        }
+      );
       //color the bar
-      this.barBackground.fillStyle(0x242a36, 1);
+      this.barBackground.fillStyle(0xcc9035, 1);
       this.bar.fillStyle(color, 1);
 
       //fill the bar with a rectangle
-      this.barBackground.fillRect(0, 0, 290, 50);
-      this.bar.fillRect(0, 0, 290, 50);
+      this.barBackground.fillRect(0, 0, 359, 50);
+      this.bar.fillRect(0, 0, 359, 50);
 
       //position the bar
-      this.bar.x = 545;
+      this.bar.x = 695;
       this.bar.y = 40;
-      this.barBackground.x = 545;
+      this.barBackground.x = 695;
       this.barBackground.y = 40;
 
       this.maskRed.setScrollFactor(0, 0);
@@ -79,9 +105,9 @@ class PlayerObj {
       this.barBackground.setScrollFactor(0, 0);
       this.bar.setScrollFactor(0, 0);
       this.barUi.setScrollFactor(0, 0);
-      this.keyUi.setScrollFactor(0, 0);
+      this.scrolOpen.setScrollFactor(0, 0);
       this.textKey.setScrollFactor(0, 0);
-      
+      this.textScrol.setScrollFactor(0, 0);
 
       this.maskRed.setDepth(1);
       this.maskRed.setTintFill(0x990000);
@@ -89,9 +115,11 @@ class PlayerObj {
       this.barBackground.setDepth(1);
       this.bar.setDepth(1);
       this.barUi.setDepth(1);
-      this.keyUi.setDepth(1);
       this.textKey.setDepth(1);
-      
+      this.textKey.setTintFill(0x7d3600);
+      this.scrolOpen.setDepth(1);
+      this.textScrol.setDepth(1);
+      this.textScrol.setTintFill(0x7d3600);
     };
 
     this.colorDarknes = (col, amt) => {
@@ -195,7 +223,6 @@ class PlayerObj {
         this.swordSlash.visible = false;
       });
 
-      // Add component to *one* game object and assign health=1, minHealth=0, maxHealth=2
       PhaserHealth.AddTo(this.player, 100, 0, 100);
 
       this.timerGetdamagedGoblin = this.game.time.addEvent({
@@ -211,7 +238,6 @@ class PlayerObj {
       this.player.body.setVelocity(0);
       this.player.anims.play("knight-idle");
 
-      // Hide and deactivate sprite when health decreases below 0
       this.player.on("die", this.diePlayer);
 
       this.flyEyeArea = new Phaser.Geom.Circle(
@@ -231,7 +257,6 @@ class PlayerObj {
         this.map.porteLevel2
       );
       this.game.physics.collide(this.player, this.map.walls);
-      // this.game.physics.add.overlap(this.swordSlash, this.swordTest, this.test);
       this.game.physics.add.overlap(this.player, this.map.ground);
       this.game.physics.add.collider(this.player, enemyGoblinEntity);
     };
@@ -240,7 +265,7 @@ class PlayerObj {
       this.sounds.stopBase();
       this.sounds.playLose();
       gameScene.scene.pause("default");
-    }
+    };
 
     this.getRotationBetween = (objTarget, mouseTarget) => {
       if (mouseTarget) {

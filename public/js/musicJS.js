@@ -43,7 +43,7 @@ class SoundsObj {
     };
     this.stopBase = () => {
       this.soundtrack.stop();
-    }
+    };
   }
 }
 

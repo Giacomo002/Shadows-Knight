@@ -3883,7 +3883,7 @@
                 if (objectB.type === "body" || objectB.type === "composite")
                     mapB = objectB.raycasterMap;
                 else {
-                    // console.log(objectB)
+                    
                     
                       mapB = objectB.data.get("raycasterMap");
                     

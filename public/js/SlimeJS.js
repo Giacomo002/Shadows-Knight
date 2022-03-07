@@ -32,7 +32,6 @@ class SlimeObj {
         "slime-i"
       );
 
-      // this.slime.setCollideWorldBounds(true);
       this.slime.setSize(40, 45);
       this.slime.setOffset(35, 40);
 
@@ -106,7 +105,6 @@ class SlimeObj {
 
       this.deadslime.on("animationcomplete", () => {
         this.deadslime.visible = false;
-        // this.slime.destroy();
       });
 
       this.slime.body.setVelocity(0);
@@ -128,16 +126,7 @@ class SlimeObj {
       this.game.physics.collide(this.slime, this.map.walls);
     };
 
-    this.getRandomUniformMovAroundPlayer = (objArea) => {
-      this.targetEscapeAg = new Phaser.Math.Vector2();
-      objArea.getRandomPoint(this.targetEscapeAg);
-      // this.targetEscapeAg.floor();
-      return this.targetEscapeAg;
-    };
-
     this.slimeChasePlayer = (player, speedUp) => {
-      // this.slime.tint = 0xff3f00;
-
       if (this.isChasing && this.slime.getHealth() > 0) {
         this.slime.body.setVelocity(0);
 
@@ -161,7 +150,7 @@ class SlimeObj {
           if (this.slime.y < player.y) {
             //down
             this.slime.setVelocity(0, this.velocityslime + speedUp);
-            // this.slime.anims.play("slime-runR", true);
+
             if (this.slime.x < player.x) {
               //right
               this.slime.anims.play("slime-runR", true);
@@ -172,7 +161,7 @@ class SlimeObj {
           } else {
             //up
             this.slime.setVelocity(0, -(this.velocityslime + speedUp));
-            // this.slime.anims.play("slime-runR", true);
+
             if (this.slime.x < player.x) {
               //right
               this.slime.anims.play("slime-runR", true);
@@ -195,11 +184,6 @@ class SlimeObj {
 
     this.slimeAttack = () => {
       if (this.canIfire) {
-        console.log(
-          "fire! " +
-            "range: " +
-            Phaser.Math.Distance.BetweenPoints(this.player.player, this.slime)
-        );
         this.projectiles = this.game.physics.add.sprite(
           this.slime.x,
           this.slime.y,
@@ -236,8 +220,6 @@ class SlimeObj {
       this.dieslime();
     };
     this.dieslime = () => {
-      //   this.slime.setActive(false);
-      //   this.slime.setVisible(false);
       this.slime.alpha = 0;
       this.deadslime.visible = true;
       this.canIfire = false;
@@ -259,7 +241,6 @@ class SlimeObj {
           tileTrappole.index == 127 ||
           tileTrappole.index == 128
         ) {
-          // this.player.player.tint = 0xff00ff;
           this.slime.damage(2);
           this.hitSlime.visible = true;
           this.hitSlime.x = this.slime.x;

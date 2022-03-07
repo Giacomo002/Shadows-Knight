@@ -12,11 +12,10 @@ class MapObj {
     this.tileset3;
     this.tileset4;
     this.tileset5;
-    this.tileset6;
 
     this.background;
     this.checkForPlayer;
-    this.levelChecker;
+
     this.ground;
     this.stairs;
     this.walls;
@@ -48,15 +47,9 @@ class MapObj {
         "background",
         "tiles-background1"
       );
-      this.tileset5 = this.map.addTilesetImage(
-        "attackPlayerTiles",
-        "attackPlayerTiles"
-      );
-      this.tileset6 = this.map.addTilesetImage("levelportal", "levelportal");
 
       this.background = this.map.createLayer("background", this.tileset3);
-      // this.checkForPlayer = this.map.createLayer("CheckForPlayer", this.tileset5);
-      this.levelChecker = this.map.createLayer("levelChecker", this.tileset5);
+
       this.ground = this.map.createLayer("ground", [
         this.tileset1,
         this.tileset4,
@@ -124,7 +117,6 @@ class MapObj {
             continue;
           }
 
-          //    tile.alpha = 1;
           tile.tint = 0x404040;
         }
       }
@@ -205,10 +197,8 @@ class MapObj {
           if (!tile) {
             return;
           }
-          // const d = Phaser.Math.Distance.Between(py, px, y, x);
-          // const alpha = Math.min(2 - d / 6, 1);
+
           tile.tint = 0xffffff;
-          // tile.alpha = alpha;
         }
       );
     };
@@ -216,17 +206,3 @@ class MapObj {
 }
 
 export { MapObj };
-
-// map1.background.getTileAt(x, y);
-// map1.checkForPlayer.getTileAt(x, y);
-// map1.levelChecker.getTileAt(x, y);
-// map1.stairs.getTileAt(x, y);
-// map1.walls.getTileAt(x, y);
-// map1.trappoleTerreno.getTileAt(x, y);
-// map1.porteChiuse.getTileAt(x, y);
-// map1.decorazioniTerreno.getTileAt(x, y);
-// map1.decorazioniMuro.getTileAt(x, y);
-
-// map1.structures.getTileAt(x, y);
-// map1.upperWalls.getTileAt(x, y);
-// map1.upperWalls2.getTileAt(x, y);

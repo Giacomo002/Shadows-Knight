@@ -22,24 +22,21 @@ class ItemsObj {
         this
       );
     };
-
     this.keyPickUp = () => {
       this.key.destroy();
       this.game.keyCounter += 1;
       if (this.game.keyCounter == 2 && this.game.level1 == false) {
-        console.log("Livello 2 sbloccato");
         this.game.keyCounter = 0;
         this.game.level1 = true;
         this.map.porteLevel1.alpha = 0;
         this.player.level1ColliderPlayer.active = false;
       } else if (this.game.keyCounter == 3 && this.game.level2 == false) {
-        console.log("Livello 3 sbloccato");
         this.game.keyCounter = 0;
         this.game.level2 = true;
         this.map.porteLevel2.alpha = 0;
         this.player.level2ColliderPlayer.active = false;
       }
-       this.player.textKey.setText(this.game.keyCounter);
+      this.player.textKey.setText(this.game.keyCounter);
     };
   }
 }

@@ -1,5 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
-
+@font-face {
+  font-family: AppleFont;
+  src: url("../fonts/apple/AppleFont.ttf");
+}
 
 html,
 body,
@@ -9,9 +11,6 @@ body,
   overflow-y: hidden; /* Hide vertical scrollbar */
   overflow-x: hidden; /* Hide horizontal scrollbar */
 }
-
-
-
 #game-container {
   min-width: 100vw;
   min-height: 100vh;
@@ -20,6 +19,6 @@ body,
   justify-content: center;
 }
 
-#game-container>canvas {
+#game-container > canvas {
   border-radius: 5px;
 }
