@@ -32,6 +32,8 @@ class PlayerObj {
     this.flyEyeArea;
     this.flyEyeAreaRadius = 190;
 
+     this.maskStart;
+
     this.makeBar = (color) => {
       //draw the bar
       this.maskRed = this.game.add.image(
@@ -44,6 +46,8 @@ class PlayerObj {
         window.innerHeight / 2,
         "mask"
       );
+
+      
 
       this.barBackground = this.game.add.graphics();
       this.bar = this.game.add.graphics();
@@ -64,7 +68,7 @@ class PlayerObj {
         fontSize: "40px",
       });
 
-      let textParagraph = [
+      this.textParagraph = [
         "Ciao!",
         " ",
         "Cerca le chiavi",
@@ -72,20 +76,22 @@ class PlayerObj {
         "livello.",
         " ",
         "---------------",
-        "P.S.: ",
+        "Devi trovare le",
         " ",
-        "Uccidili tutti!",
+        "2 chiavi",
       ];
 
       this.textScrol = this.game.add.text(
         90,
         window.innerHeight - 370,
-        textParagraph,
+        this.textParagraph,
         {
           fontFamily: "AppleFont",
           fontSize: "23px",
         }
       );
+
+
       //color the bar
       this.barBackground.fillStyle(0xcc9035, 1);
       this.bar.fillStyle(color, 1);
@@ -100,6 +106,12 @@ class PlayerObj {
       this.barBackground.x = 695;
       this.barBackground.y = 40;
 
+      this.maskStart = this.game.add.image(
+        window.innerWidth / 2,
+        window.innerHeight / 2,
+        "maskStart"
+      );
+
       this.maskRed.setScrollFactor(0, 0);
       this.mask.setScrollFactor(0, 0);
       this.barBackground.setScrollFactor(0, 0);
@@ -108,6 +120,7 @@ class PlayerObj {
       this.scrolOpen.setScrollFactor(0, 0);
       this.textKey.setScrollFactor(0, 0);
       this.textScrol.setScrollFactor(0, 0);
+      this.maskStart.setScrollFactor(0, 0);
 
       this.maskRed.setDepth(1);
       this.maskRed.setTintFill(0x990000);
@@ -120,6 +133,7 @@ class PlayerObj {
       this.scrolOpen.setDepth(1);
       this.textScrol.setDepth(1);
       this.textScrol.setTintFill(0x7d3600);
+      this.maskStart.setDepth(1);
     };
 
     this.colorDarknes = (col, amt) => {
@@ -264,6 +278,13 @@ class PlayerObj {
     this.diePlayer = () => {
       this.sounds.stopBase();
       this.sounds.playLose();
+      this.maskLose = this.game.add.image(
+        window.innerWidth / 2,
+        window.innerHeight / 2,
+        "maskLose"
+      );
+      this.maskLose.setDepth(1);
+      this.maskLose.setScrollFactor(0, 0);
       gameScene.scene.pause("default");
     };
 
@@ -285,7 +306,16 @@ class PlayerObj {
       }
     };
 
+    this.checkStartOverlay = () => {
+      if (this.maskStart.alpha == 1) {
+        this.maskStart.alpha = 0;
+      }
+    }
+
     this.movement = (offsetY) => {
+
+      
+
       this.cursors = this.game.input.keyboard.addKeys({
         up: Phaser.Input.Keyboard.KeyCodes.W,
         down: Phaser.Input.Keyboard.KeyCodes.S,
@@ -319,21 +349,33 @@ class PlayerObj {
         this.player.setOffset(35, offsetY);
         this.player.anims.play("knight-run", true);
       } else if (this.cursors.left.isDown) {
+
+         this.checkStartOverlay();
+
         this.player.setVelocityX(-this.velocityPlayer);
 
         this.player.setOffset(70, offsetY);
         this.player.anims.play("knight-run", true);
       } else if (this.cursors.right.isDown) {
+
+         this.checkStartOverlay();
+
         this.player.setVelocityX(this.velocityPlayer);
 
         this.player.setOffset(35, offsetY);
         this.player.anims.play("knight-run", true);
       } else if (this.cursors.up.isDown) {
+
+        this.checkStartOverlay();
+
         this.player.setVelocityY(-this.velocityPlayer);
 
         this.player.setOffset(35, offsetY);
         this.player.anims.play("knight-run", true);
       } else if (this.cursors.down.isDown) {
+
+         this.checkStartOverlay();
+
         this.player.setVelocityY(this.velocityPlayer);
 
         this.player.setOffset(35, offsetY);

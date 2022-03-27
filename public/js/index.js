@@ -185,8 +185,11 @@ function preload() {
   //UI
   this.load.image("invisibleMask", "asset/invisibleMask.png");
   this.load.image("mask", "asset/ui/mask.png");
+  this.load.image("maskLose", "asset/ui/losePage.png");
+  this.load.image("maskStart", "asset/ui/startPage.png");
   this.load.image("healthBarUi", "asset/ui/gameBar.png");
   this.load.image("scrolOpen", "asset/ui/ScrollOpen.png");
+  this.load.image("keyDirection", "asset/ui/keyDirection.png");
 
   //AUDIO
   this.load.audio("soundtrack-sound", "sound/soundtrack.mp3");
@@ -272,7 +275,11 @@ function create() {
     function (pointer) {
       if (pointer.leftButtonDown()) {
         if (pointer.getDuration() < 500) {
+          
           player1.swordAttack();
+          if (player1.maskStart.alpha == 1) {
+            player1.maskStart.alpha = 0;
+          }
         }
       }
     },
@@ -296,6 +303,31 @@ function create() {
 
   this.physics.add.collider(flyEyeGroupBody, goblinGroupBody);
   this.physics.add.collider(flyEyeGroupBody, slimeGroupBody);
+
+  this.level1CollideSlime = this.physics.add.collider(
+    slimeGroupBody,
+    map1.porteLevel1
+  );
+  this.level2CollideSlime = this.physics.add.collider(
+    slimeGroupBody,
+    map1.porteLevel2
+  );
+   this.level1CollideFlyEye = this.physics.add.collider(
+     flyEyeGroupBody,
+     map1.porteLevel1
+   );
+   this.level2CollideFlyEye = this.physics.add.collider(
+     flyEyeGroupBody,
+     map1.porteLevel2
+   );
+   this.level1CollideGoblin = this.physics.add.collider(
+     goblinGroupBody,
+     map1.porteLevel1
+   );
+   this.level2CollideGoblin = this.physics.add.collider(
+     goblinGroupBody,
+     map1.porteLevel2
+   );
 }
 
 //* UPDATE FUNCTION SECTION --------------------------------------------------------
@@ -576,7 +608,9 @@ function update() {
   // Aggiorno UI giocatore
   player1.healthBarUpdate();
 
+
   // Aggiorno collisioni giocatore
   this.physics.collide(player1.player, map1.background);
   this.physics.collide(player1.player, map1.walls);
 }
+

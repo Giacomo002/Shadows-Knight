@@ -123,6 +123,7 @@ class SlimeObj {
 
       this.game.physics.add.collider(this.slime, this.map.background);
       this.game.physics.add.collider(this.slime, this.map.decorazioniTerreno);
+      
       this.game.physics.collide(this.slime, this.map.walls);
     };
 
