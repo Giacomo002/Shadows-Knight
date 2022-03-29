@@ -10,7 +10,7 @@ class SoundsObj {
 
     this.soundInitialize = () => {
       this.soundtrack = this.game.sound.add("soundtrack-sound");
-      this.soundtrack.play();
+      // this.soundtrack.play();
       this.soundtrack.setLoop(true);
       this.soundtrack.setVolume(0.5);
 

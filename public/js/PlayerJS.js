@@ -32,7 +32,9 @@ class PlayerObj {
     this.flyEyeArea;
     this.flyEyeAreaRadius = 190;
 
-     this.maskStart;
+    this.maskStart;
+    this.emotesBubble;
+    this.bubbleEntety;
 
     this.makeBar = (color) => {
       //draw the bar
@@ -47,7 +49,33 @@ class PlayerObj {
         "mask"
       );
 
-      
+      this.emotesBubble = this.game.add.sprite(
+        0,
+        0,
+        "emotes-alert"
+      );
+
+      this.game.anims.create({
+        key: "emotesA-alert",
+        frames: this.game.anims.generateFrameNumbers("emotes-alert", {
+          start: 9,
+          end: 0,
+        }),
+        frameRate: 20,
+        repeat: 0,
+      });
+
+      this.emotesBubble.alpha = 0;
+      this.emotesBubble.setDepth(1);
+
+      this.emotesBubble.on("animationcomplete", () => {
+        this.emotesBubble.alpha = 0;
+      });
+
+      this.emotesBubble.on("animationupdate", () => {
+        this.emotesBubble.x = this.bubbleEntety.x;
+        this.emotesBubble.y = this.bubbleEntety.y - 40;
+      });
 
       this.barBackground = this.game.add.graphics();
       this.bar = this.game.add.graphics();
@@ -90,7 +118,6 @@ class PlayerObj {
           fontSize: "23px",
         }
       );
-
 
       //color the bar
       this.barBackground.fillStyle(0xcc9035, 1);
@@ -310,12 +337,9 @@ class PlayerObj {
       if (this.maskStart.alpha == 1) {
         this.maskStart.alpha = 0;
       }
-    }
+    };
 
     this.movement = (offsetY) => {
-
-      
-
       this.cursors = this.game.input.keyboard.addKeys({
         up: Phaser.Input.Keyboard.KeyCodes.W,
         down: Phaser.Input.Keyboard.KeyCodes.S,
@@ -349,23 +373,20 @@ class PlayerObj {
         this.player.setOffset(35, offsetY);
         this.player.anims.play("knight-run", true);
       } else if (this.cursors.left.isDown) {
-
-         this.checkStartOverlay();
+        this.checkStartOverlay();
 
         this.player.setVelocityX(-this.velocityPlayer);
 
         this.player.setOffset(70, offsetY);
         this.player.anims.play("knight-run", true);
       } else if (this.cursors.right.isDown) {
-
-         this.checkStartOverlay();
+        this.checkStartOverlay();
 
         this.player.setVelocityX(this.velocityPlayer);
 
         this.player.setOffset(35, offsetY);
         this.player.anims.play("knight-run", true);
       } else if (this.cursors.up.isDown) {
-
         this.checkStartOverlay();
 
         this.player.setVelocityY(-this.velocityPlayer);
@@ -373,8 +394,7 @@ class PlayerObj {
         this.player.setOffset(35, offsetY);
         this.player.anims.play("knight-run", true);
       } else if (this.cursors.down.isDown) {
-
-         this.checkStartOverlay();
+        this.checkStartOverlay();
 
         this.player.setVelocityY(this.velocityPlayer);
 
@@ -481,6 +501,15 @@ class PlayerObj {
           this.player.tint = 0xffffff;
         }, 160);
       }
+    };
+
+    this.bubbleEmotes = (entety) => {
+      this.bubbleEntety = entety;
+      this.emotesBubble.anims.play("emotesA-alert", true);
+      this.emotesBubble.x = entety.x;
+      this.emotesBubble.y = entety.y - 40;
+      this.emotesBubble.alpha = 1;
+      
     };
 
     this.attackDamageSystem = (enemyEntity) => {

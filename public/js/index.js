@@ -190,6 +190,10 @@ function preload() {
   this.load.image("healthBarUi", "asset/ui/gameBar.png");
   this.load.image("scrolOpen", "asset/ui/ScrollOpen.png");
   this.load.image("keyDirection", "asset/ui/keyDirection.png");
+  this.load.spritesheet("emotes-alert", "asset/ui/bubbleEmotesAlert.png", {
+    frameWidth: 64,
+    frameHeight: 64,
+  });
 
   //AUDIO
   this.load.audio("soundtrack-sound", "sound/soundtrack.mp3");
@@ -378,6 +382,10 @@ function update() {
             goblinEnemy.goblin
           ) < 200
         ) {
+          if (!goblinEnemy.isAttaccking) {
+            player1.bubbleEmotes(goblinEnemy.goblin);
+          }
+          goblinEnemy.isAttaccking = true;
           goblinEnemy.goblinChasePlayer(player1.player, 30);
           if (
             Phaser.Math.Distance.BetweenPoints(
@@ -407,6 +415,7 @@ function update() {
 
         goblinEnemy.trapsDamage();
       } else if (goblinEnemy.alive) {
+        goblinEnemy.isAttaccking = false;
         goblinEnemy.goblin.body.setVelocity(0);
         goblinEnemy.goblin.anims.play("goblin-idle", true);
       }
@@ -515,6 +524,10 @@ function update() {
           Phaser.Math.Distance.BetweenPoints(player1.player, slimeEnemy.slime) <
           200
         ) {
+          if (!slimeEnemy.isAttaccking) {
+            player1.bubbleEmotes(slimeEnemy.slime);
+          }
+          slimeEnemy.isAttaccking = true;
           slimeEnemy.slimeChasePlayer(player1.player, 30);
           if (
             Phaser.Math.Distance.BetweenPoints(
@@ -539,11 +552,13 @@ function update() {
             }
           }
         } else {
+          
           slimeEnemy.slimeChasePlayer(player1.player, 0);
         }
 
         slimeEnemy.trapsDamage();
       } else if (slimeEnemy.slime.getHealth() > 0) {
+        slimeEnemy.isAttaccking = false;
         slimeEnemy.slime.body.setVelocity(0);
         slimeEnemy.slime.anims.play("slime-idle", true);
         slimeEnemy.canIfire = false;
